@@ -1,14 +1,16 @@
 ## iPowerShell - a Jupyter Kernel for PowerShell
 
-I'm working on a PowerShell Jupyter kernel, but so far what I've done is take some messaging code from [zabirauf's iCSharp kernel](https://github.com/zabirauf/icsharp) and make a generic "Jupyter .NET" library to provide the re-usable for creating Jupyter kernels in .Net languages.
+I've finally got a working PowerShell Jupyter kernel! 
 
-### It's _not ready yet!_
+In the process, I've taken some messaging code from [zabirauf's iCSharp kernel](https://github.com/zabirauf/icsharp) and made a generic "Jupyter .NET" library to provide a re-usable core for creating Jupyter kernels in .Net languages -- so feel free to borrow that if you like (it's under the Apache license).
 
-I've just gotten the bare minimum running, this is the first check-in.
+## First Working Version
 
-* KernelInfo message handling works
-* Execute is an echo host (doesn't run code, just echo's back)
+At this point, I'm only handling two messages from Jupyter:
 
-I figured I'd share this first commit publically because it's going to be a good place to start if you want to write your own kernel in .net for something else.
-For what it's worth, though, the FSharp team has an awesome [iFSharp kernel](https://github.com/fsprojects/IfSharp) already, which even includes it's own custom charting tools and more -- they're even working with the Python folks at Microsoft to host [notebooks.azure.com](https://notebooks.azure.com).
-And of course, the aforementioned [iCSharp kernel](https://github.com/zabirauf/icsharp) is currently far enough ahead of me that I'm copying their code...
+* KernelInfo request
+* Execute request
+
+The PowerShell kernel is _working_ at this point, but I'm always returning text, json, and HTML output -- and Jupyter notebooks are smart enough to display the HTML output.  The problem is that PowerShell's `ConvertTo-Html` isn't smart enough to only show the default columns, and do reasonable things with numbers and strings -- so I have a bit of work to do yet.
+
+In any case, it's working, as you can [see here](ReadMe.ipynb).

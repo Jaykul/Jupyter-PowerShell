@@ -49,11 +49,21 @@
 
             // 4: Send execute reply to shell socket
             this.SendExecuteReplyMessage(message, serverSocket);
+            
 
             // 5: Send execute result message to IOPub
-            if (results.HasOutput)
+            if (results.Output.Any())
             {
                 this.SendOutputMessageToIOPub(message, ioPub, displayData);
+            }
+
+            if(results.Exceptions.Any())
+            {
+                this.SendExecuteErrorMessage(message, serverSocket);
+                foreach(var ex in results.Exceptions)
+                {
+                    this.SendErrorToIOPub(message, ioPub, ex);
+                }
             }
 
             // 6: Send IDLE status message to IOPub
@@ -131,7 +141,7 @@
 
         public void SendExecuteReplyMessage(Message message, RouterSocket shellSocket)
         {
-            ExecuteReplyOk executeReply = new ExecuteReplyOk()
+            var executeReply = new ExecuteReplyOk()
             {
                 ExecutionCount = this.executionCount,
                 Payload = new List<Dictionary<string, string>>(),
@@ -147,6 +157,44 @@
 
             this.logger.LogInformation(string.Format("Sending message to Shell {0}", JsonConvert.SerializeObject(executeReplyMessage)));
             this.messageSender.Send(executeReplyMessage, shellSocket);
+        }
+
+        public void SendExecuteErrorMessage(Message message, RouterSocket shellSocket)
+        {
+            var executeReply = new ExecuteReplyError()
+            {
+                ExecutionCount = this.executionCount
+            };
+
+            Message executeReplyMessage = new Message(MessageTypeValues.ExecuteReply, JsonConvert.SerializeObject(executeReply), message.Header);
+
+            // Stick the original identifiers on the message so they'll be sent first
+            // Necessary since the shell socket is a ROUTER socket
+            executeReplyMessage.Identifiers = message.Identifiers;
+
+            this.logger.LogInformation(string.Format("Sending message to Shell {0}", JsonConvert.SerializeObject(executeReplyMessage)));
+            this.messageSender.Send(executeReplyMessage, shellSocket);
+        }
+
+        private void SendErrorToIOPub(Message message, PublisherSocket ioPub, Exception ex)
+        {
+            var error = new ExecuteReplyError()
+            {
+                EName = ex.GetType().FullName,
+                EValue = ex.Message,
+                Traceback = ex.StackTrace.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                ExecutionCount = this.executionCount,
+                Status = "error"
+            };
+
+            Message executeReplyMessage = new Message(MessageTypeValues.ExecuteReply, JsonConvert.SerializeObject(error), message.Header);
+
+            // Stick the original identifiers on the message so they'll be sent first
+            // Necessary since the shell socket is a ROUTER socket
+            executeReplyMessage.Identifiers = message.Identifiers;
+
+            this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(executeReplyMessage)));
+            this.messageSender.Send(executeReplyMessage, ioPub);
         }
     }
 }

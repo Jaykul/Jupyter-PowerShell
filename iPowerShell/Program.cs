@@ -24,7 +24,7 @@ namespace Jupyter.PowerShell
             }
 
             ConnectionInformation connectionInformation = ConnectionInformation.FromFile(args[0]);
-            var engine = new PowerShellEngine();
+            var engine = new PowerShellEngine(logger);
             Session connection = new Session(connectionInformation, engine, logger);
 
             connection.Wait();
