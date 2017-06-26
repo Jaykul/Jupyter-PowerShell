@@ -1,4 +1,4 @@
-## iPowerShell - a Jupyter Kernel for PowerShell
+## iPowerShell - a [Jupyter](https://jupyter.org/) Kernel for PowerShell
 
 I've finally got a working PowerShell Jupyter kernel! 
 
