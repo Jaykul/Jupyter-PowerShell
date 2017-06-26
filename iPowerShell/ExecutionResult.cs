@@ -21,14 +21,23 @@ namespace Jupyter.PowerShell
 
         public DisplayData GetDisplayData()
         {
+            var data = new Dictionary<string, object>()
+            {
+                {"text/plain", OutputString}
+            };
+
+            if(!string.IsNullOrEmpty(OutputHtml))
+            {
+                data.Add("text/html", OutputHtml);
+            }
+            if (!string.IsNullOrEmpty(OutputJson))
+            {
+                data.Add("application/json", OutputJson);
+            }
+
             return new DisplayData()
             {
-                Data = new Dictionary<string, object>()
-                {
-                    {"text/plain", OutputString},
-                    {"text/html", OutputHtml},
-                    //{"application/json", OutputJson}
-                }
+                Data = data
             };
         }
     }

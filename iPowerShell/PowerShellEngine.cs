@@ -78,32 +78,27 @@ namespace Jupyter.PowerShell
                 pipeline.Commands.AddScript(script);
 
                 var output = pipeline.Invoke();
-                result.Output.AddRange(output.Select(o => o.BaseObject));
+                if (output.Count > 0)
+                {
+                    result.Output.AddRange(output.Select(o => o.BaseObject));
+                    pipeline = Runspace.CreatePipeline();
+                    var formatter = new Command("Out-String");
+                    pipeline.Commands.Add(formatter);
 
-                pipeline = Runspace.CreatePipeline();
+                    result.OutputString = string.Join("\n   \n", pipeline.Invoke(output).Select(line => line.ToString())).Trim();
 
+                    pipeline = Runspace.CreatePipeline();
+                    formatter = new Command("ConvertTo-Json");
+                    pipeline.Commands.Add(formatter);
+                    result.OutputJson = string.Join("\n   \n", pipeline.Invoke(output).Select(line => line.ToString()));
 
-                // pipeline.Commands.AddScript("ConvertTo-Html -Fragment");
-                var formatter = new Command("ConvertTo-Html");
-                formatter.Parameters.Add("Fragment", true);
-                pipeline.Commands.Add(formatter);
-
-                result.OutputHtml = string.Join("\r\n", pipeline.Invoke(output).Select(line => line.ToString()));
-
-                pipeline = Runspace.CreatePipeline();
-                //pipeline.Commands.AddScript("Out-String");
-                formatter = new Command("Out-String");
-                pipeline.Commands.Add(formatter);
-
-                result.OutputString = string.Join("\r\n", pipeline.Invoke(output).Select(line => line.ToString()));
-
-                pipeline = Runspace.CreatePipeline();
-                //pipeline.Commands.AddScript("ConvertTo-Json");
-                formatter = new Command("ConvertTo-Json");
-                pipeline.Commands.Add(formatter);
-                result.OutputJson = string.Join("\r\n", pipeline.Invoke(output).Select(line => line.ToString()));
-                
-
+                    // Users need to output their own HTML, ConvertTo-Html is *way* too flawed. 
+                    // BUGBUG: need a better way to detect html?
+                    if (output.First().BaseObject is string && result.OutputString.StartsWith("<") && result.OutputString.EndsWith(">"))
+                    {
+                        result.OutputHtml = result.OutputString;
+                    }
+                }
                 // result.OutputJson = JsonConvert.SerializeObject(output);
 
                 //var teeCommand = new Command("Tee-Object");
