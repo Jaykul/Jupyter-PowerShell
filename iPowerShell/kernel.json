@@ -1,11 +1,11 @@
 {
   "argv": [
     "dotnet",
-    "C:\\Users\\Joel\\Projects\\Jupyter\\iPowerShell\\iPowerShell\\bin\\Debug\\netcoreapp2.0\\IPowerShell.exe.dll",
+    "C:\\Users\\Joel\\Projects\\Jupyter\\iPowerShell\\iPowerShell\\bin\\Debug\\netcoreapp2.0\\PowerShell-Kernel.exe.dll",
     "{connection_file}",
     "-v",
     "-d"
   ],
-  "display_name": "iPowerShell",
+  "display_name": "PowerShell (Core)",
   "language": "PowerShell"
 }
