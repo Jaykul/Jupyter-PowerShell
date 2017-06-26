@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
@@ -85,12 +86,12 @@ namespace Jupyter.PowerShell
                     var formatter = new Command("Out-String");
                     pipeline.Commands.Add(formatter);
 
-                    result.OutputString = string.Join("\n   \n", pipeline.Invoke(output).Select(line => line.ToString())).Trim();
+                    result.OutputString = string.Join("\n", pipeline.Invoke(output).Select(line => line.ToString())).Trim();
 
-                    pipeline = Runspace.CreatePipeline();
-                    formatter = new Command("ConvertTo-Json");
-                    pipeline.Commands.Add(formatter);
-                    result.OutputJson = string.Join("\n   \n", pipeline.Invoke(output).Select(line => line.ToString()));
+                    //pipeline = Runspace.CreatePipeline();
+                    //formatter = new Command("ConvertTo-Json");
+                    //pipeline.Commands.Add(formatter);
+                    //result.OutputJson = string.Join("\n", pipeline.Invoke(JsonWrapper.Wrap(script, output)).Select(line => line.ToString().Replace("\r\n","\n")));
 
                     // Users need to output their own HTML, ConvertTo-Html is *way* too flawed. 
                     // BUGBUG: need a better way to detect html?

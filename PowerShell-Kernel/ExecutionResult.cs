@@ -1,6 +1,7 @@
 ﻿using Jupyter.Messages;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
 using System.Text;
@@ -17,8 +18,6 @@ namespace Jupyter.PowerShell
 
         public string OutputHtml { get; set; }
 
-        public string OutputJson { get; set; }
-
         public DisplayData GetDisplayData()
         {
             var data = new Dictionary<string, object>()
@@ -30,9 +29,9 @@ namespace Jupyter.PowerShell
             {
                 data.Add("text/html", OutputHtml);
             }
-            if (!string.IsNullOrEmpty(OutputJson))
+            if (Output.Count > 0)
             {
-                data.Add("application/json", OutputJson);
+                data.Add("application/json", new { output = Output });
             }
 
             return new DisplayData()
