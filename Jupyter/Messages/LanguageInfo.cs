@@ -26,7 +26,7 @@ namespace Jupyter.Messages
                 return _extension;
             }
             set {
-                if (!value.StartsWith('.'))
+                if (!value.StartsWith("."))
                 {
                     _extension = "." + value;
                 }
