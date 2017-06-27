@@ -8,11 +8,20 @@ using System.Text;
 
 namespace Jupyter.PowerShell
 {
+    public class ErrorResult : Server.IErrorResult
+    {
+        public string Name { get; set; }
+        public string Message { get; set; }
+        public List<string> StackTrace { get; set; }
+    }
+
     public class ExecutionResult : Server.IExecutionResult
     {
         public List<Object> Output { get; } = new List<object>();
-        internal List<ErrorRecord> Errors { get; } = new List<ErrorRecord>();
-        public List<Exception> Exceptions { get { return Errors.Select(er => er.Exception).ToList(); } }
+
+        public List<Exception> Exceptions { get; } = new List<Exception>();
+
+        public Server.IErrorResult Error { get; set; }
 
         public string OutputString { get; set; }
 

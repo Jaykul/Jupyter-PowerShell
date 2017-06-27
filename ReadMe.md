@@ -11,10 +11,6 @@ At this point, I'm only handling two messages:
 
 The PowerShell kernel is therefore _working_, and returning simple text output as on the console (see examples below).
 
-### NO ERROR OUTPUT
-
-I am doing something wrong in the way I'm sending error output back, so there's currently [no output when there are errors](https://github.com/Jaykul/Jupyter-PowerShell/issues/3). That's my number one priority to fix, if anyone knows what I'm doing wrong -- I'll get to it tonight, otherwise.
-
 ## Features
 
 Apart from the built-in Jupyter features, I'm going to add some output enhancements so you can hook into widgets, etc. However, there's none of thata yet, except that:
@@ -27,3 +23,7 @@ Apart from the built-in Jupyter features, I'm going to add some output enhanceme
 In order to get cross-platform support, this kernel is using [PowerShell Core](https://github.com/PowerShell/PowerShell), which means you'll want to have PowerShell 6 Beta 3 installed to try it out. I'm hoping to provide a Full Framework (aka Windows PowerShell) version too, once I start doing releases.
 
 To use it or build it, you need [dotnet core 2 preview](https://www.microsoft.com/net/core/preview), and if you want to contribute, and want to build it in Visual Studio, you need [VS 2017 Preview version 15.3](https://www.visualstudio.com/vs/preview/).
+
+## Examples
+
+I have [a version of this document with examples](https://github.com/Jaykul/Jupyter-PowerShell/blob/master/ReadMe.ipynb) in it as a Jupyter Notebook, which mostly works, in read-only mode, on github...

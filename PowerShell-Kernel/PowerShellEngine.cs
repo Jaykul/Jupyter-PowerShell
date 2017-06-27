@@ -79,6 +79,52 @@ namespace Jupyter.PowerShell
                 pipeline.Commands.AddScript(script);
 
                 var output = pipeline.Invoke();
+
+                if (pipeline.Error.Count > 0)
+                {
+                    
+
+                    foreach (object error in pipeline.Error.ReadToEnd())
+                    {
+                        var pso = error as PSObject;
+                        if (pso == null)
+                        {
+                            continue;
+                        }
+                        ErrorRecord errorRecord = pso.BaseObject as ErrorRecord;
+                        Exception ex;
+
+                        if (errorRecord != null)
+                        {
+                            if (result.Error == null)
+                            {
+                                result.Error = new ErrorResult()
+                                {
+                                    Name = errorRecord.FullyQualifiedErrorId,
+                                    Message = string.Format(
+                                                "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
+                                                errorRecord.InvocationInfo.InvocationName,
+                                                errorRecord.ToString(),
+                                                errorRecord.InvocationInfo.PositionMessage,
+                                                errorRecord.CategoryInfo,
+                                                errorRecord.FullyQualifiedErrorId),
+                                    StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                                };
+                            }
+                            ex = errorRecord.Exception;
+                        }
+                        else
+                        {
+                            ex = pso.BaseObject as Exception;
+                        }
+
+                        if(ex != null)
+                        {
+                            result.Exceptions.Add(ex);
+                        }
+                    }
+                }
+
                 if (output.Count > 0)
                 {
                     result.Output.AddRange(output.Select(o => o.BaseObject));
@@ -110,30 +156,12 @@ namespace Jupyter.PowerShell
                 //htmlCommand.Parameters.Add("-Fragment");
                 //pipeline.Commands.Add(htmlCommand);
 
-                if (pipeline.Error.Count > 0)
-                {
-                    foreach (ErrorRecord error in pipeline.Error.ReadToEnd())
-                    {
-                        result.Errors.Add(error);
 
-                        var details = error.ErrorDetails != null ? error.ErrorDetails.Message : error.Exception.Message;
-
-                        _logger.LogError(
-                            "SCRIPT=\"{1}\"\nCATEGORY=\"{2}\"\nTargetName=\"{3}\"\nTargetType=\"{4}\"\nActivity=\"{5}\"\nReason=\"{6}\"\nDetails=\"{7}\"\n",
-                            script,
-                            error.CategoryInfo.Category,
-                            error.CategoryInfo.TargetName,
-                            error.CategoryInfo.TargetType,
-                            error.CategoryInfo.Activity,
-                            error.CategoryInfo.Reason,
-                            details);
-                    }
-                }
             }
             catch (Exception ex)
             {
                 _logger.LogError( "PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, ex.Message, ex.StackTrace);
-                result.Errors.Add(new ErrorRecord(ex, "UninvokeableScript", ErrorCategory.SyntaxError, script));
+                result.Exceptions.Add(ex);
             }
 
             return result;

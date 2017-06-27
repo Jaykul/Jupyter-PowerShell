@@ -22,5 +22,8 @@
 
         public const string Input = "pyin";
 
+        public const string Error = "error";
+
+        public const string Stream = "stream";
     }
 }
