@@ -108,7 +108,8 @@ namespace Jupyter.PowerShell
                                                 errorRecord.InvocationInfo.PositionMessage,
                                                 errorRecord.CategoryInfo,
                                                 errorRecord.FullyQualifiedErrorId),
-                                    StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                                    StackTrace = new List<string>(new []{ errorRecord.InvocationInfo.PositionMessage })
+// PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
                                 };
                             }
                             ex = errorRecord.Exception;

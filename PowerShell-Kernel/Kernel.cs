@@ -4,11 +4,11 @@ using System;
 
 namespace Jupyter.PowerShell
 {
-    class Program
+    public class Kernel
     {
         private static ILogger logger;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var loggerFactory = new LoggerFactory()
                                      .AddConsole()

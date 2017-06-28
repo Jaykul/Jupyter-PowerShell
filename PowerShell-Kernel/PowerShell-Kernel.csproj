@@ -1,31 +1,50 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">..\</SolutionDir>
+    <OutputPath>$(SolutionDir)\Output\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
-    <AssemblyName>PowerShell-Kernel.exe</AssemblyName>
+    <AssemblyName>PowerShell-Kernel</AssemblyName>
     <RootNamespace>Jupyter.PowerShell</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
+    <TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks>
+    <Description>A PowerShell kernel for Jupyter</Description>
+    <PackageId>Jupyter-PowerShell</PackageId>
+    <Authors>Joel "Jaykul" Bennett</Authors>
+    <Company>HuddledMasses.org</Company>
+    <Product>Jupyter PowerShell</Product>
+    <Copyright>Copyright (c) 2017 Joel Bennett</Copyright>
+    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Jaykul/Jupyter-PowerShell</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Jaykul/Jupyter-PowerShell</RepositoryUrl>
+    <NeutralLanguage>en</NeutralLanguage>
+    
+    <Version>1.0.0-beta-3</Version>
+    <AssemblyVersion>1.0.0.3</AssemblyVersion>
+    <FileVersion>1.0.0.3</FileVersion>
+    <PostBuildEvent></PostBuildEvent>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
+   
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0-preview1-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0-preview1-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0-preview1-final" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0-preview2-final" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.0.0-beta.3" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="6.0.0-beta.3" />
     <PackageReference Include="Microsoft.WSMan.Management" Version="6.0.0-beta.3" />
     <PackageReference Include="System.Management.Automation" Version="6.0.0-beta.3" />
-    <PackageReference Remove="Microsoft.NETCore.App" Version="2.0.0-preview1-002111-00" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="Microsoft.NETCore.App" Version="2.0.0-preview1-002111-00" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <PackageReference Remove="Microsoft.NETCore.App" />
+    <PackageReference Include="System.Management.Automation" Version="6.1.7601.17515" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Jupyter\Jupyter.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Update="kernel.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+
 </Project>

@@ -1,6 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">..\</SolutionDir>
+    <OutputPath>$(SolutionDir)\Output\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks>
+    <Description>A .NET Framewok library for making Jupyter kernels</Description>
+    <PackageId>Jupyter-Kernel</PackageId>
+    <Authors>Joel "Jaykul" Bennett</Authors>
+    <Company>HuddledMasses.org</Company>
+    <Product>Jupyter Kernel .NET</Product>
+    <Copyright>Copyright (c) 2017 Joel Bennett, Zohaib Rauf</Copyright>
+    <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Jaykul/Jupyter-PowerShell</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Jaykul/Jupyter-PowerShell</RepositoryUrl>
+    <NeutralLanguage>en</NeutralLanguage>
+
+    <Version>1.0.0-beta-3</Version>
+    <AssemblyVersion>1.0.0.3</AssemblyVersion>
+    <FileVersion>1.0.0.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
