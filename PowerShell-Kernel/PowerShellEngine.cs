@@ -73,63 +73,70 @@ namespace Jupyter.PowerShell
         public IExecutionResult Execute(string script)
         {
             var result = new ExecutionResult();
+            Pipeline pipeline = null;
+            System.Collections.ObjectModel.Collection<PSObject> output = null;
             try
             {
-                var pipeline = Runspace.CreatePipeline();
+                pipeline = Runspace.CreatePipeline();
                 pipeline.Commands.AddScript(script);
+                output = pipeline.Invoke();
 
-                var output = pipeline.Invoke();
-
-                if (pipeline.Error.Count > 0)
+                LogErrors(result, pipeline.Error);
+            }
+            catch (RuntimeException err)
+            {
+                if (result.Error == null)
                 {
-                    
-
-                    foreach (object error in pipeline.Error.ReadToEnd())
+                    var errorRecord = err.ErrorRecord;
+                    result.Error = new ErrorResult()
                     {
-                        var pso = error as PSObject;
-                        if (pso == null)
-                        {
-                            continue;
-                        }
-                        ErrorRecord errorRecord = pso.BaseObject as ErrorRecord;
-                        Exception ex;
-
-                        if (errorRecord != null)
-                        {
-                            if (result.Error == null)
-                            {
-                                result.Error = new ErrorResult()
-                                {
-                                    Name = errorRecord.FullyQualifiedErrorId,
-                                    Message = string.Format(
-                                                "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
-                                                errorRecord.InvocationInfo.InvocationName,
-                                                errorRecord.ToString(),
-                                                errorRecord.InvocationInfo.PositionMessage,
-                                                errorRecord.CategoryInfo,
-                                                errorRecord.FullyQualifiedErrorId),
-                                    StackTrace = new List<string>(new []{ errorRecord.InvocationInfo.PositionMessage })
-// PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
-                                };
-                            }
-                            ex = errorRecord.Exception;
-                        }
-                        else
-                        {
-                            ex = pso.BaseObject as Exception;
-                        }
-
-                        if(ex != null)
-                        {
-                            result.Exceptions.Add(ex);
-                        }
-                    }
+                        Name = errorRecord.FullyQualifiedErrorId,
+                        Message = string.Format(
+                                    "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
+                                    errorRecord.InvocationInfo.InvocationName,
+                                    errorRecord.ToString(),
+                                    errorRecord.InvocationInfo.PositionMessage,
+                                    errorRecord.CategoryInfo,
+                                    errorRecord.FullyQualifiedErrorId),
+                        StackTrace = new List<string>(new[] { errorRecord.InvocationInfo.PositionMessage })
+                        // PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                    };
                 }
-
-                if (output.Count > 0)
+                _logger.LogError("PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, err.Message, err.StackTrace);
+                result.Exceptions.Add(err);
+            }
+            catch (Exception ex)
+            {
+                if (result.Error == null)
                 {
-                    result.Output.AddRange(output.Select(o => o.BaseObject));
-                    pipeline = Runspace.CreatePipeline();
+                    result.Error = new ErrorResult()
+                    {
+                        Name = ex.GetType().FullName,
+                        Message = string.Format(
+                                    "{0} : {1}\n{2}",
+                                    ex.Source,
+                                    ex.Message,
+                                    ex.TargetSite),
+                        StackTrace = new List<string>(ex.StackTrace.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+                    };
+                }
+                _logger.LogError("Unhandled PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, ex.Message, ex.StackTrace);
+                result.Exceptions.Add(ex);
+            }
+
+            CollectOutput(result, output);
+
+            return result;
+        }
+
+        private void CollectOutput(ExecutionResult result,System.Collections.ObjectModel.Collection<PSObject> output)
+        {
+            if (output?.Count > 0)
+            {
+                result.Output.AddRange(output.Select(o => o.BaseObject));
+                try
+                {
+                    Pipeline pipeline = Runspace.CreatePipeline();
                     var formatter = new Command("Out-String");
                     pipeline.Commands.Add(formatter);
 
@@ -147,25 +154,58 @@ namespace Jupyter.PowerShell
                         result.OutputHtml = result.OutputString;
                     }
                 }
-                // result.OutputJson = JsonConvert.SerializeObject(output);
-
-                //var teeCommand = new Command("Tee-Object");
-                //teeCommand.Parameters.Add("-Variable", "Output");
-                //pipeline.Commands.Add(teeCommand);
-
-                //var htmlCommand = new Command("ConvertTo-Html");
-                //htmlCommand.Parameters.Add("-Fragment");
-                //pipeline.Commands.Add(htmlCommand);
-
-
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unhandled PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", "Out-String", ex.Message, ex.StackTrace);
+                }
             }
-            catch (Exception ex)
+        }
+
+        private static void LogErrors(ExecutionResult result, PipelineReader<object> errorStream)
+        {
+            if (errorStream?.Count > 0)
             {
-                _logger.LogError( "PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, ex.Message, ex.StackTrace);
-                result.Exceptions.Add(ex);
-            }
+                foreach (object error in errorStream.ReadToEnd())
+                {
+                    var pso = error as PSObject;
+                    if (pso == null)
+                    {
+                        continue;
+                    }
+                    ErrorRecord errorRecord = pso.BaseObject as ErrorRecord;
+                    Exception exception;
 
-            return result;
+                    if (errorRecord != null)
+                    {
+                        if (result.Error == null)
+                        {
+                            result.Error = new ErrorResult()
+                            {
+                                Name = errorRecord.FullyQualifiedErrorId,
+                                Message = string.Format(
+                                            "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
+                                            errorRecord.InvocationInfo.InvocationName,
+                                            errorRecord.ToString(),
+                                            errorRecord.InvocationInfo.PositionMessage,
+                                            errorRecord.CategoryInfo,
+                                            errorRecord.FullyQualifiedErrorId),
+                                StackTrace = new List<string>(new[] { errorRecord.InvocationInfo.PositionMessage })
+                                // PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                            };
+                        }
+                        exception = errorRecord.Exception;
+                    }
+                    else
+                    {
+                        exception = pso.BaseObject as Exception;
+                    }
+
+                    if (exception != null)
+                    {
+                        result.Exceptions.Add(exception);
+                    }
+                }
+            }
         }
     }
 }
