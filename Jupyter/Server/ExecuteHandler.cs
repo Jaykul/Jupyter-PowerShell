@@ -116,8 +116,8 @@
             content.Add("execution_count", this.executionCount);
             content.Add("data", data.Data);
             content.Add("metadata", data.MetaData);
-
-            Message outputMessage = new Message(MessageTypeValues.ExecuteResult, JsonConvert.SerializeObject(content), message.Header);
+            
+            Message outputMessage = new Message(MessageTypeValues.ExecuteResult, JsonConvert.SerializeObject(content, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(outputMessage)));
             this.messageSender.Send(outputMessage, ioPub);
