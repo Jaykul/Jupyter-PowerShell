@@ -104,18 +104,21 @@ function Install-Kernel {
             Installed version: $dotnetCLIIntalledVersion
             Expected version: $dotnetCLIRequiredVersion
 
-            If your version is older, you probably cannot run the 'PowerShell (Core)' kernel.
+            If your version is older, you PROBABLY cannot run the 'PowerShell (Core)' kernel.
 
-            1. Remove the installed version from:
-                - on windows '`$env:LOCALAPPDATA\Microsoft\dotnet'
-                - on osx and linux '`$env:HOME/.dotnet'
-            2. Re-run this script with -InstallDotnet
+            Get the latest version from https://www.microsoft.com/net/core/preview
             `n
             "
         }
     }
 
-    foreach($target in "PowerShell-Full","PowerShell-Core") {
+    if ($IsWindows) {
+        $Targets = "PowerShell-Full","PowerShell-Core"
+    } else {
+        $Targets = "PowerShell-Core"
+    }
+
+    foreach($target in $Targets) {
 
         $kernelFile = Join-Path $kernelFolder "$target\kernel.json"
 
