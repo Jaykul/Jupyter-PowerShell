@@ -16,9 +16,9 @@
     <RepositoryUrl>https://github.com/Jaykul/Jupyter-PowerShell</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
 
-    <Version>1.0.0-beta-3</Version>
-    <AssemblyVersion>1.0.0.3</AssemblyVersion>
-    <FileVersion>1.0.0.3</FileVersion>
+    <VersionSuffix>$(VersionSuffix)</VersionSuffix>
+    <Version>1.0.0</Version>
+    <Version Condition=" '$(VersionSuffix)' != '' ">$(Version)$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
