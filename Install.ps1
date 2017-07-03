@@ -21,7 +21,7 @@ try {
     $IsOSX = $Runtime::IsOSPlatform($OSPlatform::OSX)
     $IsWindows = $Runtime::IsOSPlatform($OSPlatform::Windows)
 } catch {
-    # If these are already set, then they're read-only and we're done
+    # If these are already set read-only, we're done
     try {
         $IsCoreCLR = $false
         $IsLinux = $false
@@ -32,7 +32,7 @@ try {
 }
 
 $dotnetCLIChannel = "preview"
-$dotnetCLIRequiredVersion = "2.0.0-preview1-005977"
+$dotnetCLIRequiredVersion = "2.0.0-preview2-006497"
 # On Windows paths is separated by semicolon
 $TestModulePathSeparator = ':'
 
@@ -104,7 +104,7 @@ function Install-Kernel {
             Installed version: $dotnetCLIIntalledVersion
             Expected version: $dotnetCLIRequiredVersion
 
-            If your version is older, you PROBABLY cannot run the 'PowerShell (Core)' kernel.
+            If your version is older than 2.0.0-preview1 you PROBABLY cannot run the 'PowerShell (Core)' kernel.
 
             Get the latest version from https://www.microsoft.com/net/core/preview
             `n
