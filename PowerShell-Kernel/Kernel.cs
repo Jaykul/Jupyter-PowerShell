@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Jupyter.Messages;
 using System;
+using System.Linq;
 
 namespace Jupyter.PowerShell
 {
@@ -10,9 +11,17 @@ namespace Jupyter.PowerShell
 
         public static void Main(string[] args)
         {
-            var loggerFactory = new LoggerFactory()
-                                     .AddConsole()
-                                     .AddDebug();
+            var loggerFactory = new LoggerFactory();
+
+            if (args.Contains("-c"))
+            {
+                loggerFactory.AddConsole();
+            }
+
+            if(args.Contains("-d"))
+            {
+                loggerFactory.AddDebug();
+            }
             
             logger = loggerFactory.CreateLogger<PowerShellEngine>();
 
