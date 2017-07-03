@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     # The path to put our kernel.json folders in
-    $KernelFolder = $(Join-Path $Env:AppData "jupyter\kernels\"),
+    $KernelFolder,
 
     # The path where the kernel executables are (should contain the 'net461' and 'netcoreapp2.0' folders)
     $InstallPath = $PSScriptRoot,
@@ -114,8 +114,18 @@ function Install-Kernel {
 
     if ($IsWindows) {
         $Targets = "PowerShell-Full","PowerShell-Core"
+        if(!$KernelFolder) {
+            $KernelFolder = Join-Path $Env:AppData "jupyter\kernels\"
+        }
     } else {
         $Targets = "PowerShell-Core"
+        if(!$KernelFolder) {
+            if($IsLinux) {
+                $KernelFolder = "~/.local/share/jupyter/kernels"
+            } else {
+                $KernelFolder = "~/Library/Jupyter/kernels"
+            }
+        }
     }
 
     foreach($target in $Targets) {
@@ -138,9 +148,10 @@ function Install-Kernel {
             `n
             "
         }
+        # Necessary for windows only:
         $kernelPath = $kernelPath -replace "\\", "\\"
 
-        $null = mkdir -Path (Split-Path $kernelFile) -Force
+        $null = New-Item -Path (Split-Path $kernelFile) -Force -ItemType Directory
 $kernelData = @"
 {
   "argv": [
