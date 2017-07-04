@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json;
 
-    public class CompleteRequest
+    public class CompleteRequestContent : Content
     {
         [JsonProperty("code")]
         public string Code { get; set; }

@@ -42,7 +42,7 @@
             Send(JsonConvert.SerializeObject(message.Header), socket);
             Send(JsonConvert.SerializeObject(message.ParentHeader), socket);
             Send(JsonConvert.SerializeObject(message.MetaData), socket);
-            Send(message.Content, socket, false);
+            Send(JsonConvert.SerializeObject(message.Content, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), socket, false);
 
             return true;
         }

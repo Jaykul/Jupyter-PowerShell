@@ -33,7 +33,7 @@ namespace Jupyter.PowerShell
 
         public string OutputHtml { get; set; }
 
-        public DisplayData GetDisplayData()
+        public DisplayDataContent GetDisplayData()
         {
             var data = new Dictionary<string, object>()
             {
@@ -50,7 +50,7 @@ namespace Jupyter.PowerShell
                 data.Add("application/json", new { output = Output });
             }
 
-            return new DisplayData()
+            return new DisplayDataContent()
             {
                 Data = data
             };

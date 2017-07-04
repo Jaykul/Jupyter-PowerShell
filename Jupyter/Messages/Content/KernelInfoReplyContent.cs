@@ -3,7 +3,7 @@
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
-    public class KernelInfoReplyData
+    public class KernelInfoReplyContent : Content
     {
         [JsonProperty("protocol_version")]
         public string ProtocolVersion { get; set; }
@@ -15,7 +15,7 @@
         public string ImplementationVersion { get; set; }
 
         [JsonProperty("language_info")]
-        public LanguageInfoData LanguageInfo { get; set; }
+        public LanguageInfoContent LanguageInfo { get; set; }
 
         [JsonProperty("banner")]
         public string Banner { get; set; }

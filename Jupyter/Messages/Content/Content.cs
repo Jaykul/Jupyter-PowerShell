@@ -1,7 +1,6 @@
 ﻿namespace Jupyter.Messages
 {
-
-    public class KernelInfoRequestData
+    public class Content
     {
     }
 }

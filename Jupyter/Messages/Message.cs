@@ -14,10 +14,10 @@
             this.UUID = string.Empty;
             this.HMac = string.Empty;
             this.MetaData = new Dictionary<string, object>();
-            this.Content = string.Empty;
+            this.Content = new Content();
         }
 
-        public Message(MessageType messageType, string content, Header parentHeader)
+        public Message(MessageType messageType, Content content, Header parentHeader)
         {
             UUID = parentHeader.Session;
             ParentHeader = parentHeader;
@@ -44,7 +44,7 @@
         public Dictionary<string, object> MetaData { get; set; }
 
         [JsonProperty("content")]
-        public string Content { get; set; }
+        public Content Content { get; set; }
 
         
     }

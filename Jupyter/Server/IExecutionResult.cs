@@ -22,6 +22,6 @@ namespace Jupyter.Server
 
         IErrorResult Error { get; }
 
-        DisplayData GetDisplayData();
+        DisplayDataContent GetDisplayData();
     }
 }

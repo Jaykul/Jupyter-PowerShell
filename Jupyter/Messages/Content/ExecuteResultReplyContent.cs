@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class ExecuteReplyOk : ExecuteReplyData
+    public class ExecuteResultReplyContent : ExecuteReplyContent
     {
-        public ExecuteReplyOk()
+        public ExecuteResultReplyContent()
         {
             this.Status = ExecutionState.Ok;
         }

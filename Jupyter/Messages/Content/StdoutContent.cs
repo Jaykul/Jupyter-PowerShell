@@ -2,8 +2,13 @@
 {
     using Newtonsoft.Json;
 
-    public class StdoutMessage
+    public class StdoutContent : Content
     {
+        public StdoutContent(string text)
+        {
+            Text = text;
+        }
+
         [JsonProperty("name")]
         public string Name { get; } = "stdout";
 

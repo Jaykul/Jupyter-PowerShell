@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json;
 
-    public class ExecuteReplyData
+    public class ExecuteReplyContent : Content
     {
         [JsonProperty("status")]
         public ExecutionState Status { get; set; }

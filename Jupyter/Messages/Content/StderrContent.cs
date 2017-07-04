@@ -2,8 +2,13 @@
 {
     using Newtonsoft.Json;
 
-    public class StderrMessage
+    public class StderrContent : Content
     {
+        public StderrContent(string text)
+        {
+            Text = text;
+        }
+
         [JsonProperty("name")]
         public string Name { get; } = "stderr";
 

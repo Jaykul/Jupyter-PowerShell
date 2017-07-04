@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json;
 
-    public class Shutdown
+    public class ShutdownContent : Content
     {
         [JsonProperty("restart")]
         public bool Restart { get; set; }

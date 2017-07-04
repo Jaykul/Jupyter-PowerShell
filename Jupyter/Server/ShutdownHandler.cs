@@ -19,7 +19,7 @@
 
         public void HandleMessage(Message message, RouterSocket serverSocket, PublisherSocket ioPub)
         {
-            Shutdown shutdownRequest = JsonConvert.DeserializeObject<Shutdown>(message.Content);
+            var shutdownRequest = message.Content as ShutdownContent;
 
             // TODO: Restart the PowerShell Engine
 
@@ -28,7 +28,7 @@
                 UUID = message.Header.Session,
                 ParentHeader = message.Header,
                 Header = new Header(MessageType.ShutDownReply, message.Header.Session),
-                Content = JsonConvert.SerializeObject(new Shutdown { Restart = shutdownRequest.Restart })
+                Content = shutdownRequest
             };
 
             _logger.LogInformation("Sending shutdown_response");

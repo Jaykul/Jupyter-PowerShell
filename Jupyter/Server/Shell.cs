@@ -125,7 +125,37 @@
             string content = this.server.ReceiveFrameString();
             this.logger.LogInformation(content);
 
-            message.Content = content;
+            switch (message.Header.MessageType)
+            {
+                case MessageType.ExecuteRequest:
+                    message.Content = JsonConvert.DeserializeObject<ExecuteRequestContent>(content);
+                    break;
+                case MessageType.KernelInfoRequest:
+                    message.Content = null;
+                    break;
+                case MessageType.CompleteRequest:
+                    message.Content = JsonConvert.DeserializeObject<CompleteRequestContent>(content);
+                    break;
+                case MessageType.ShutDownRequest:
+                    message.Content = JsonConvert.DeserializeObject<ShutdownContent>(content);
+                    break;
+                //case MessageType.ExecuteInput:
+                //case MessageType.ExecuteReply:
+                //case MessageType.ExecuteResult:
+                //case MessageType.CompleteReply:
+                //case MessageType.ShutDownReply:
+                //case MessageType.KernelInfoReply:
+
+                //case MessageType.Status:
+                //case MessageType.Output:
+                //case MessageType.Input:
+                //case MessageType.Error:
+                //case MessageType.Stream:
+                default:
+                    logger.LogInformation(message.Header.MessageType + " message not handled: " + content);
+                    break;
+            }
+            
 
             return message;
         }

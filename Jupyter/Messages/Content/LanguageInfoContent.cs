@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Jupyter.Messages
 {
-    public class LanguageInfoData
+    public class LanguageInfoContent : Content
     {
         [JsonProperty("name")]
         public string Name { get; set; }

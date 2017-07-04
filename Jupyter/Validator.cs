@@ -99,8 +99,8 @@
                 JsonConvert.SerializeObject(message.Header),
                 JsonConvert.SerializeObject(message.ParentHeader),
                 JsonConvert.SerializeObject(message.MetaData),
-                message.Content
-            };
+                JsonConvert.SerializeObject(message.Content, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore})
+            }; 
         }
     }
 }

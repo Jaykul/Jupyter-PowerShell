@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class CompleteReply
+    public class CompleteReplyContent : Content
     {
         [JsonProperty("matches")]
         public List<string> Matches { get; set; }
