@@ -14,6 +14,7 @@ namespace Jupyter.PowerShell
     public class PowerShellEngine : IReplEngine
     {
         private readonly ILogger _logger;
+        private readonly PowerShellOptions _options;
 
         /// <summary>
         /// The shared initial session state (we'll preload modules, etc).
@@ -22,8 +23,9 @@ namespace Jupyter.PowerShell
 
         public Runspace Runspace { get; private set; }
 
-        public PowerShellEngine(ILogger logger)
+        public PowerShellEngine(PowerShellOptions options, ILogger logger)
         {
+            _options = options;
             _logger = logger;
             Iss = InitialSessionState.CreateDefault();
 
@@ -72,7 +74,7 @@ namespace Jupyter.PowerShell
 
         public IExecutionResult Execute(string script)
         {
-            var result = new ExecutionResult();
+            var result = new ExecutionResult(_options);
             Pipeline pipeline = null;
             System.Collections.ObjectModel.Collection<PSObject> output = null;
             try
@@ -129,7 +131,7 @@ namespace Jupyter.PowerShell
             return result;
         }
 
-        private void CollectOutput(ExecutionResult result,System.Collections.ObjectModel.Collection<PSObject> output)
+        private void CollectOutput(ExecutionResult result, System.Collections.ObjectModel.Collection<PSObject> output)
         {
             if (output?.Count > 0)
             {

@@ -17,6 +17,12 @@ namespace Jupyter.PowerShell
 
     public class ExecutionResult : Server.IExecutionResult
     {
+        private PowerShellOptions _options;
+
+        public ExecutionResult(PowerShellOptions options)
+        {
+            _options = options;
+        }
         public List<Object> Output { get; } = new List<object>();
 
         public List<Exception> Exceptions { get; } = new List<Exception>();
@@ -38,7 +44,8 @@ namespace Jupyter.PowerShell
             {
                 data.Add("text/html", OutputHtml);
             }
-            if (Output.Count > 0)
+
+            if (_options.JsonOutput && Output.Count > 0)
             {
                 data.Add("application/json", new { output = Output });
             }

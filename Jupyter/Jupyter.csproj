@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0-preview1-final" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0-preview1-final" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0-preview1-final" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
     <PackageReference Include="NetMQ" Version="4.0.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>

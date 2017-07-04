@@ -2,23 +2,37 @@
 using Jupyter.Messages;
 using System;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Jupyter.Config;
 
 namespace Jupyter.PowerShell
 {
     public class Kernel
     {
         private static ILogger logger;
+        private static IConfigurationRoot configuration;
 
         public static void Main(string[] args)
         {
+            var cwd = Directory.GetCurrentDirectory();
             var loggerFactory = new LoggerFactory();
+            var configBuilder = new ConfigurationBuilder()
+                                    .SetBasePath(cwd)
+                                    .AddJsonFile("Config.json", true);
 
-            if (args.Contains("-c"))
+            configuration = configBuilder.Build();
+
+            var loggerOptions = new LoggerOptions();
+            configuration.GetSection("Logger").Bind(loggerOptions);
+
+
+            if (loggerOptions.ConsoleOutput)
             {
                 loggerFactory.AddConsole();
             }
 
-            if(args.Contains("-d"))
+            if(loggerOptions.DebuggerOutput)
             {
                 loggerFactory.AddDebug();
             }
@@ -33,7 +47,11 @@ namespace Jupyter.PowerShell
             }
 
             ConnectionInformation connectionInformation = ConnectionInformation.FromFile(args[0]);
-            var engine = new PowerShellEngine(logger);
+
+            var powershellOptions = new PowerShellOptions();
+            configuration.GetSection("PowerShell").Bind(powershellOptions);
+
+            var engine = new PowerShellEngine(powershellOptions, logger);
             Session connection = new Session(connectionInformation, engine, logger);
 
             connection.Wait();

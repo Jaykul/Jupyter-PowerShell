@@ -20,14 +20,14 @@
     <PackageProjectUrl>https://github.com/Jaykul/Jupyter-PowerShell</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Jaykul/Jupyter-PowerShell</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
-
-
     <VersionSuffix>$(VersionSuffix)</VersionSuffix>
     <Version>1.0.0</Version>
     <Version Condition=" '$(VersionSuffix)' != '' ">$(Version)$(VersionSuffix)</Version>
   </PropertyGroup>
-   
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.0.0-preview2-final" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0-preview2-final" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0-preview2-final" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0-preview2-final" />
@@ -45,5 +45,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Jupyter\Jupyter.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Folder Include="Config\" />
+  </ItemGroup>
 </Project>

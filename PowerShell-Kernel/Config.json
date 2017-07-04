@@ -1,0 +1,10 @@
+﻿{
+  "PowerShell": {
+    "JsonOutput": false
+  },
+
+  "Logger": {
+    "ConsoleOutput": false,
+    "DebuggerOutput": false
+  }
+}
