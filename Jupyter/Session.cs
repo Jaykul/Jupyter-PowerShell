@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using Jupyter.Messages;
-using Jupyter.Server;
-using System;
-using System.Collections.Generic;
-
-namespace Jupyter
+﻿namespace Jupyter
 {
+    using Jupyter.Messages;
+    using Jupyter.Server;
+    using Microsoft.Extensions.Logging;
+    using System.Collections.Generic;
+
     public class Session
     {
         private ILogger _logger;
@@ -15,7 +14,7 @@ namespace Jupyter
         private Validator _validator;
         private Shell _shell;
         private Heartbeat _heartbeat;
-        private Dictionary<string, IMessageHandler> _messageHandlers;
+        private Dictionary<MessageType, IMessageHandler> _messageHandlers;
 
         public Session(ConnectionInformation connection, IReplEngine engine, ILogger logger)
         {
@@ -41,13 +40,15 @@ namespace Jupyter
         }
 
 
-        private Dictionary<string, IMessageHandler> MessageHandlers => this._messageHandlers;
+        private Dictionary<MessageType, IMessageHandler> MessageHandlers => this._messageHandlers;
 
         private void InitializeMessageHandlers()
         {
-            this._messageHandlers = new Dictionary<string, IMessageHandler>();
-            this._messageHandlers.Add(MessageTypeValues.KernelInfoRequest, new KernelInfoHandler(_logger, _sender));
-            this._messageHandlers.Add(MessageTypeValues.ExecuteRequest, new ExecuteRequestHandler(_logger, _engine, _sender));
+            this._messageHandlers = new Dictionary<MessageType, IMessageHandler>
+            {
+                { MessageType.KernelInfoRequest, new KernelInfoHandler(_logger, _sender) },
+                { MessageType.ExecuteRequest, new ExecuteRequestHandler(_logger, _engine, _sender) }
+            };
             // this._messageHandlers.Add(MessageTypeValues.CompleteRequest, new CompleteRequestHandler());
         }
 

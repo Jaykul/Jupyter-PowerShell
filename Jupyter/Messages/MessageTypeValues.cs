@@ -1,29 +1,50 @@
-﻿namespace Jupyter.Messages
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
+
+namespace Jupyter.Messages
 {
-    public class MessageTypeValues
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum MessageType
     {
-        public const string ExecuteRequest = "execute_request";
+        [EnumMember(Value = "execute_request")]
+        ExecuteRequest,
+        [EnumMember(Value = "execute_input")]
+        ExecuteInput,
+        [EnumMember(Value = "execute_reply")]
+        ExecuteReply,
+        [EnumMember(Value = "execute_result")]
+        ExecuteResult,
 
-        public const string ExecuteReply = "execute_reply";
+        
+        [EnumMember(Value = "kernel_info_request")]
+        KernelInfoRequest,
+        [EnumMember(Value = "kernel_info_reply")]
+        KernelInfoReply,
 
-        public const string ExecuteResult = "execute_result";
+        [EnumMember(Value = "complete_request")]
+        CompleteRequest,
+        [EnumMember(Value = "complete_reply")]
+        CompleteReply,
 
-        public const string ExecuteInput = "execute_input";
+        [EnumMember(Value = "shutdown_request")]
+        ShutDownRequest,
+        [EnumMember(Value = "shutdown_reply")]
+        ShutDownReply,
 
-        public const string KernelInfoRequest = "kernel_info_request";
+        [EnumMember(Value = "status")]
+        Status,
 
-        public const string KernelInfoReply = "kernel_info_reply";
+        [EnumMember(Value = "pyout")]
+        Output,
 
-        public const string CompleteRequest = "complete_request";
+        [EnumMember(Value = "pyin")]
+        Input,
 
-        public const string Status = "status";
+        [EnumMember(Value = "error")]
+        Error,
 
-        public const string Output = "pyout";
-
-        public const string Input = "pyin";
-
-        public const string Error = "error";
-
-        public const string Stream = "stream";
+        [EnumMember(Value = "stream")]
+        Stream,
     }
 }

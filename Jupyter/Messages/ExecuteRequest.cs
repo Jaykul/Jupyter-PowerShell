@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class ExecuteRequest
+    public class ExecuteRequestData
     {
         [JsonProperty("code")]
         public string Code { get; set; }

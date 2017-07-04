@@ -3,11 +3,11 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class ExecuteReplyOk : ExecuteReply
+    public class ExecuteReplyOk : ExecuteReplyData
     {
         public ExecuteReplyOk()
         {
-            this.Status = StatusValues.Ok;
+            this.Status = ExecutionState.Ok;
         }
 
         [JsonProperty("payload")]

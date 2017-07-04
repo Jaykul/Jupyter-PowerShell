@@ -26,13 +26,13 @@
         private Thread thread;
         private bool disposed;
 
-        private Dictionary<string, IMessageHandler> messageHandlers;
+        private Dictionary<MessageType, IMessageHandler> messageHandlers;
 
         public Shell(ILogger logger,
                      string addressShell,
                      string addressIOPub,
                      Validator signatureValidator,
-                     Dictionary<string, IMessageHandler> messageHandlers)
+                     Dictionary<MessageType, IMessageHandler> messageHandlers)
         {
             this.logger = logger;
             this.addressShell = addressShell;
@@ -68,8 +68,7 @@
 
                 this.logger.LogInformation(JsonConvert.SerializeObject(message));
 
-                IMessageHandler handler;
-                if (this.messageHandlers.TryGetValue(message.Header.MessageType, out handler))
+                if (this.messageHandlers.TryGetValue(message.Header.MessageType, out IMessageHandler handler))
                 {
                     this.logger.LogInformation(string.Format("Sending message to handler {0}", message.Header.MessageType));
                     handler.HandleMessage(message, this.server, this.ioPubSocket);

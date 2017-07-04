@@ -15,7 +15,7 @@
     {
         private readonly ILogger logger;
 
-        private readonly IReplEngine replEngine;
+        private readonly IReplEngine _replEngine;
 
         private readonly MessageSender messageSender;
 
@@ -24,48 +24,53 @@
         public ExecuteRequestHandler(ILogger logger, IReplEngine replEngine, MessageSender messageSender)
         {
             this.logger = logger;
-            this.replEngine = replEngine;
+            this._replEngine = replEngine;
             this.messageSender = messageSender;
         }
 
         public void HandleMessage(Message message, RouterSocket serverSocket, PublisherSocket ioPub)
         {
             this.logger.LogDebug(string.Format("Message Content {0}", message.Content));
-            ExecuteRequest executeRequest = JsonConvert.DeserializeObject<ExecuteRequest>(message.Content);
+            ExecuteRequestData executeRequest = JsonConvert.DeserializeObject<ExecuteRequestData>(message.Content);
 
             this.logger.LogInformation(string.Format("Execute Request received with code {0}", executeRequest.Code));
 
             // 1: Send Busy status on IOPub
-            this.SendMessageToIOPub(message, ioPub, StatusValues.Busy);
+            this.SendMessageToIOPub(message, ioPub, ExecutionState.Busy);
 
             // 2: Send execute input on IOPub
             this.SendInputMessageToIOPub(message, ioPub, executeRequest.Code);
 
-            // 3: Evaluate the C# code
+            // 3: Call the engine with the code
             string code = executeRequest.Code;
-            var results = this.replEngine.Execute(code);
-
-            DisplayData displayData = results.GetDisplayData();
+            var results = _replEngine.Execute(code);
 
             // 4: Send execute reply to shell socket
-            this.SendExecuteReplyMessage(message, serverSocket);
-            
-
             // 5: Send execute result message to IOPub
-            if (results.Output.Any())
+            if (results.Error != null)
             {
-                this.SendOutputMessageToIOPub(message, ioPub, displayData);
+                SendExecuteErrorMessage(message, serverSocket, results.Error);
+                SendErrorToIOPub(message, ioPub, results.Error);
+            }
+            else
+            {
+                SendExecuteReplyMessage(message, serverSocket);
+                if (results.Output.Any())
+                {
+                    // 5: Send execute result message to IOPub
+                    DisplayData displayData = results.GetDisplayData();
+                    SendOutputMessageToIOPub(message, ioPub, displayData);
+                }
             }
 
-            if(results.Error != null)
-            {
-                this.SendExecuteErrorMessage(message, serverSocket, results.Error);
-                this.SendErrorToIOPub(message, ioPub, results.Error);
-            }
 
             // 6: Send IDLE status message to IOPub
-            this.SendMessageToIOPub(message, ioPub, StatusValues.Idle);
+            this.SendMessageToIOPub(message, ioPub, ExecutionState.Idle);
 
+            // TODO: History
+            // The Jupyter Notebook interface does not use history messages
+            // However, we're supposed to be storing the history *with output* 
+            // So that a HistoryHandler can find it when asked
             if (executeRequest.StoreHistory)
             {
                 this.executionCount += 1;
@@ -98,12 +103,16 @@
         //    return sb.ToString();
         //}
 
-        public void SendMessageToIOPub(Message message, PublisherSocket ioPub, string statusValue)
+        public void SendMessageToIOPub(Message message, PublisherSocket ioPub, ExecutionState statusValue)
         {
-            Dictionary<string, string> content = new Dictionary<string, string>();
-            content.Add("execution_state", statusValue);
-            Message ioPubMessage = new Message(MessageTypeValues.Status,
-                JsonConvert.SerializeObject(content), message.Header);
+            var content = new Dictionary<string, ExecutionState>
+            {
+                { "execution_state", statusValue }
+            };
+
+            Message ioPubMessage = new Message( MessageType.Status,
+                                                JsonConvert.SerializeObject(content), 
+                                                message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(ioPubMessage)));
             this.messageSender.Send(ioPubMessage, ioPub);
@@ -112,12 +121,14 @@
 
         public void SendOutputMessageToIOPub(Message message, PublisherSocket ioPub, DisplayData data)
         {
-            Dictionary<string, object> content = new Dictionary<string, object>();
-            content.Add("execution_count", this.executionCount);
-            content.Add("data", data.Data);
-            content.Add("metadata", data.MetaData);
-            
-            Message outputMessage = new Message(MessageTypeValues.ExecuteResult, JsonConvert.SerializeObject(content, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), message.Header);
+            Dictionary<string, object> content = new Dictionary<string, object>
+            {
+                { "execution_count", this.executionCount },
+                { "data", data.Data },
+                { "metadata", data.MetaData }
+            };
+
+            Message outputMessage = new Message(MessageType.ExecuteResult, JsonConvert.SerializeObject(content, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(outputMessage)));
             this.messageSender.Send(outputMessage, ioPub);
@@ -125,11 +136,13 @@
 
         public void SendInputMessageToIOPub(Message message, PublisherSocket ioPub, string code)
         {
-            Dictionary<string, object> content = new Dictionary<string, object>();
-            content.Add("execution_count", 1);
-            content.Add("code", code);
+            Dictionary<string, object> content = new Dictionary<string, object>
+            {
+                { "execution_count", 1 },
+                { "code", code }
+            };
 
-            Message executeInputMessage = new Message(MessageTypeValues.Input, JsonConvert.SerializeObject(content),
+            Message executeInputMessage = new Message(MessageType.Input, JsonConvert.SerializeObject(content),
                 message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(executeInputMessage)));
@@ -145,12 +158,14 @@
                 UserExpressions = new Dictionary<string, string>()
             };
 
-            Message executeReplyMessage = new Message(MessageTypeValues.ExecuteReply,
-                JsonConvert.SerializeObject(executeReply), message.Header);
-
-            // Stick the original identifiers on the message so they'll be sent first
-            // Necessary since the shell socket is a ROUTER socket
-            executeReplyMessage.Identifiers = message.Identifiers;
+            Message executeReplyMessage = new Message(  MessageType.ExecuteReply,
+                                                        JsonConvert.SerializeObject(executeReply), 
+                                                        message.Header)
+            {
+                // Stick the original identifiers on the message so they'll be sent first
+                // Necessary since the shell socket is a ROUTER socket
+                Identifiers = message.Identifiers
+            };
 
             this.logger.LogInformation(string.Format("Sending message to Shell {0}", JsonConvert.SerializeObject(executeReplyMessage)));
             this.messageSender.Send(executeReplyMessage, shellSocket);
@@ -166,11 +181,14 @@
                 Traceback = error.StackTrace
             };
 
-            Message executeReplyMessage = new Message(MessageTypeValues.ExecuteReply, JsonConvert.SerializeObject(executeReply), message.Header);
-
-            // Stick the original identifiers on the message so they'll be sent first
-            // Necessary since the shell socket is a ROUTER socket
-            executeReplyMessage.Identifiers = message.Identifiers;
+            Message executeReplyMessage = new Message(  MessageType.ExecuteReply, 
+                                                        JsonConvert.SerializeObject(executeReply), 
+                                                        message.Header)
+            {
+                // Stick the original identifiers on the message so they'll be sent first
+                // Necessary since the shell socket is a ROUTER socket
+                Identifiers = message.Identifiers
+            };
 
             this.logger.LogInformation(string.Format("Sending message to Shell {0}", JsonConvert.SerializeObject(executeReplyMessage)));
             this.messageSender.Send(executeReplyMessage, shellSocket);
@@ -185,7 +203,9 @@
                 EValue = error.Message,
                 Traceback = error.StackTrace
             };
-            Message executeReplyMessage = new Message(MessageTypeValues.Error, JsonConvert.SerializeObject(executeReply), message.Header)
+            Message executeReplyMessage = new Message(  MessageType.Error, 
+                                                        JsonConvert.SerializeObject(executeReply), 
+                                                        message.Header)
             {
                 Identifiers = message.Identifiers
             };
@@ -197,7 +217,9 @@
                 Text = error.Message
             };
 
-            Message stderrMessage = new Message(MessageTypeValues.Stream, JsonConvert.SerializeObject(errorMessage), message.Header)
+            Message stderrMessage = new Message(MessageType.Stream, 
+                                                JsonConvert.SerializeObject(errorMessage), 
+                                                message.Header)
             {
                 Identifiers = message.Identifiers
             };

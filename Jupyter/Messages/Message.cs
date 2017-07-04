@@ -1,8 +1,11 @@
 ﻿namespace Jupyter.Messages
 {
-    using System.Collections.Generic;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
+    /// <summary>
+    /// The base class for all Jupyter Messages
+    /// </summary>
     public class Message
     {
         public Message()
@@ -14,7 +17,7 @@
             this.Content = string.Empty;
         }
 
-        public Message(string messageType, string content, Header parentHeader)
+        public Message(MessageType messageType, string content, Header parentHeader)
         {
             UUID = parentHeader.Session;
             ParentHeader = parentHeader;

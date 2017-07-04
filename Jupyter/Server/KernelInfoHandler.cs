@@ -19,13 +19,13 @@
 
         public void HandleMessage(Message message, RouterSocket serverSocket, PublisherSocket ioPub)
         {
-            KernelInfoRequest kernelInfoRequest = JsonConvert.DeserializeObject<KernelInfoRequest>(message.Content);
+            KernelInfoRequestData kernelInfoRequest = JsonConvert.DeserializeObject<KernelInfoRequestData>(message.Content);
 
             Message replyMessage = new Message()
             {
                 UUID = message.Header.Session,
                 ParentHeader = message.Header,
-                Header = new Header(MessageTypeValues.KernelInfoReply, message.Header.Session),
+                Header = new Header(MessageType.KernelInfoReply, message.Header.Session),
                 Content = JsonConvert.SerializeObject(CreateKernelInfoReply())
             };
 
@@ -33,14 +33,14 @@
             _sender.Send(replyMessage, serverSocket);
         }
 
-        private KernelInfoReply CreateKernelInfoReply()
+        private KernelInfoReplyData CreateKernelInfoReply()
         {
-            KernelInfoReply kernelInfoReply = new KernelInfoReply()
+            KernelInfoReplyData kernelInfoReply = new KernelInfoReplyData()
             {
                 ProtocolVersion = "5.0",
                 Implementation = "iPowerShell",
                 ImplementationVersion = "0.0.1",
-                LanguageInfo = new LanguageInfo()
+                LanguageInfo = new LanguageInfoData()
                 {
                     Name = "PowerShell",
                     Version = "5.0",

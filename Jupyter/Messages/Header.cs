@@ -2,6 +2,9 @@
 {
     using Newtonsoft.Json;
 
+    /// <summary>
+    /// The Jupyter Message Header
+    /// </summary>
     public class Header
     {
         [JsonProperty("msg_id")]
@@ -17,7 +20,7 @@
         public string Date { get; set; }
 
         [JsonProperty("msg_type")]
-        public string MessageType { get; set; }
+        public MessageType MessageType { get; set; }
 
         [JsonProperty("version")]
         public string Version { get; set; }
@@ -26,7 +29,7 @@
         {
         }
 
-        public Header(string messageType, string session)
+        public Header(MessageType messageType, string session)
         {
             Username = Constants.USERNAME;
             Session = session;

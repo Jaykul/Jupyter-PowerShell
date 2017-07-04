@@ -3,11 +3,11 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class ExecuteReplyError : ExecuteReply
+    public class ExecuteReplyError : ExecuteReplyData
     {
         public ExecuteReplyError()
         {
-            this.Status = StatusValues.Error;
+            this.Status = ExecutionState.Error;
         }
 
         [JsonProperty("ename")]

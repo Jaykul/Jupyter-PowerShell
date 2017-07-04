@@ -1,17 +1,29 @@
 ﻿namespace Jupyter.Messages
 {
-    public static class StatusValues
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ExecutionState
     {
-        public const string Ok = "ok";
 
-        public const string Error = "error";
+        [EnumMember(Value = "ok")]
+        Ok,
 
-        public const string Abort = "abort";
+        [EnumMember(Value = "error")]
+        Error,
 
-        public const string Busy = "busy";
+        [EnumMember(Value = "abort")]
+        Abort,
 
-        public const string Idle = "idle";
+        [EnumMember(Value = "busy")]
+        Busy,
 
-        public const string Starting = "starting";
+        [EnumMember(Value = "idle")]
+        Idle,
+
+        [EnumMember(Value = "starting")]
+        Starting
     }
 }

@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json;
 
-    public class ExecuteInput
+    public class ExecuteInputData
     {
         [JsonProperty("code")]
         public string Code { get; set; }

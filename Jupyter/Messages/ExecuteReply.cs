@@ -2,10 +2,10 @@
 {
     using Newtonsoft.Json;
 
-    public class ExecuteReply
+    public class ExecuteReplyData
     {
         [JsonProperty("status")]
-        public string Status { get; set; }
+        public ExecutionState Status { get; set; }
 
         [JsonProperty("execution_count")]
         public int ExecutionCount { get; set; }

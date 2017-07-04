@@ -1,10 +1,11 @@
 ﻿namespace Jupyter.Messages
 {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     public class Status
     {
         [JsonProperty("execution_state")]
-        public string ExecutionState { get; set; }
+        public ExecutionState ExecutionState { get; set; }
     }
 }
