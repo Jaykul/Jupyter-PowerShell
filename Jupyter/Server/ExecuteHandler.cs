@@ -36,10 +36,10 @@
             this.logger.LogInformation(string.Format("Execute Request received with code {0}", executeRequest.Code));
 
             // 1: Send Busy status on IOPub
-            this.PublishStatus(message, ioPub, ExecutionState.Busy);
+            this.PublishStatus(message, ioPub, KernelState.Busy);
 
             // 2: Send execute input on IOPub
-            this.SendInputMessageToIOPub(message, ioPub, executeRequest.Code);
+            this.PublishInput(message, ioPub, executeRequest.Code);
 
             // 3: Call the engine with the code
             string code = executeRequest.Code;
@@ -49,8 +49,8 @@
             // 5: Send execute result message to IOPub
             if (results.Error != null)
             {
-                SendExecuteErrorMessage(message, serverSocket, results.Error);
-                SendErrorToIOPub(message, ioPub, results.Error);
+                // SendExecuteErrorMessage(message, serverSocket, results.Error);
+                PublishError(message, ioPub, results.Error);
             }
             else
             {
@@ -59,13 +59,12 @@
                 {
                     // 5: Send execute result message to IOPub
                     DisplayDataContent displayData = results.GetDisplayData();
-                    SendOutputMessageToIOPub(message, ioPub, displayData);
+                    PublishOutput(message, ioPub, displayData);
                 }
             }
 
-
             // 6: Send IDLE status message to IOPub
-            this.PublishStatus(message, ioPub, ExecutionState.Idle);
+            this.PublishStatus(message, ioPub, KernelState.Idle);
 
             // TODO: History
             // The Jupyter Notebook interface does not use history messages
@@ -75,35 +74,9 @@
             {
                 this.executionCount += 1;
             }
-
         }
 
-
-        //private string GetCodeOutput(ExecutionResult executionResult)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-
-        //    foreach (string result in executionResult.OutputResults)
-        //    {
-        //        sb.Append(result);
-        //    }
-
-        //    return sb.ToString();
-        //}
-
-        //private string GetCodeHtmlOutput(ExecutionResult executionResult)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    foreach (Tuple<string, ConsoleColor> tuple in executionResult.OutputResultWithColorInformation)
-        //    {
-        //        string encoded = HttpUtility.HtmlEncode(tuple.Item1);
-        //        sb.Append(string.Format("<font style=\"color:{0}\">{1}</font>", tuple.Item2.ToString(), encoded));
-        //    }
-
-        //    return sb.ToString();
-        //}
-
-        public void PublishStatus(Message message, PublisherSocket ioPub, ExecutionState statusValue)
+        public void PublishStatus(Message message, PublisherSocket ioPub, KernelState statusValue)
         {
             Message ioPubMessage = new Message( MessageType.Status,
                                                 new StatusContent(statusValue), 
@@ -114,23 +87,18 @@
             this.logger.LogInformation("Message Sent");
         }
 
-        public void SendOutputMessageToIOPub(Message message, PublisherSocket ioPub, DisplayDataContent data)
+        public void PublishOutput(Message message, PublisherSocket ioPub, DisplayDataContent data)
         {
             var content = new ExecuteResultPublishContent(data, executionCount);
-
             Message outputMessage = new Message(MessageType.ExecuteResult, content, message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(outputMessage)));
             this.messageSender.Send(outputMessage, ioPub);
         }
 
-        public void SendInputMessageToIOPub(Message message, PublisherSocket ioPub, string code)
+        public void PublishInput(Message message, PublisherSocket ioPub, string code)
         {
-            var content = new ExecuteRequestPublishContent()
-            {
-                ExecutionCount = executionCount,
-                Code = code
-            };
+            var content = new ExecuteRequestPublishContent(code, executionCount);
             Message executeInputMessage = new Message(MessageType.Input, content, message.Header);
 
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(executeInputMessage)));
@@ -159,15 +127,15 @@
 
         public void SendExecuteErrorMessage(Message message, RouterSocket shellSocket, IErrorResult error)
         {
-            var executeReply = new ExecuteErrorReplyContent()
+            var content = new ExecuteErrorReplyContent()
             {
                 ExecutionCount = executionCount,
-                EName = error.Name,
-                EValue = error.Message,
-                Traceback = error.StackTrace
+                //EName = error.Name,
+                //EValue = error.Message,
+                //Traceback = error.StackTrace
             };
 
-            Message executeReplyMessage = new Message(MessageType.ExecuteReply, executeReply, message.Header)
+            Message executeReplyMessage = new Message(MessageType.ExecuteReply, content, message.Header)
             {
                 // Stick the original identifiers on the message so they'll be sent first
                 // Necessary since the shell socket is a ROUTER socket
@@ -178,9 +146,20 @@
             this.messageSender.Send(executeReplyMessage, shellSocket);
         }
 
-        private void SendErrorToIOPub(Message message, PublisherSocket ioPub, IErrorResult error)
+        private void PublishError(Message message, PublisherSocket ioPub, IErrorResult error)
         {
-            var executeReply = new ExecuteErrorReplyContent()
+            // Write to Stderr first -- then write the ExecuteError
+            var errorMessage = new StderrContent(error.Message);
+            Message stderrMessage = new Message(MessageType.Stream, errorMessage, message.Header)
+            {
+                Identifiers = message.Identifiers
+            };
+
+            this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(stderrMessage)));
+            this.messageSender.Send(stderrMessage, ioPub);
+
+
+            var executeReply = new ExecuteErrorPublishContent()
             {
                 ExecutionCount = executionCount,
                 EName = error.Name,
@@ -191,18 +170,9 @@
             {
                 Identifiers = message.Identifiers
             };
-            this.messageSender.Send(executeReplyMessage, ioPub);
             this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(executeReplyMessage)));
+            this.messageSender.Send(executeReplyMessage, ioPub);
 
-            var errorMessage = new StderrContent(error.Message);
-
-            Message stderrMessage = new Message(MessageType.Stream, errorMessage, message.Header)
-            {
-                Identifiers = message.Identifiers
-            };
-            
-            this.messageSender.Send(stderrMessage, ioPub);
-            this.logger.LogInformation(string.Format("Sending message to IOPub {0}", JsonConvert.SerializeObject(stderrMessage)));
         }
     }
 }

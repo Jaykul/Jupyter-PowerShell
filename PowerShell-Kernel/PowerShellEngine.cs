@@ -94,15 +94,18 @@ namespace Jupyter.PowerShell
                     {
                         Name = errorRecord.FullyQualifiedErrorId,
                         Message = string.Format(
-                                    "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
+                                    "{0} : {1}\r\n",
                                     errorRecord.InvocationInfo.InvocationName,
-                                    errorRecord.ToString(),
-                                    errorRecord.InvocationInfo.PositionMessage,
-                                    errorRecord.CategoryInfo,
-                                    errorRecord.FullyQualifiedErrorId),
-                        StackTrace = new List<string>(new[] { errorRecord.InvocationInfo.PositionMessage })
-                        // PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                                    errorRecord.ToString()),
+                        StackTrace = new List<string>(new[] {
+                            errorRecord.InvocationInfo.PositionMessage,
+#if NETCORE
+                            errorRecord.ScriptStackTrace,
+#endif
+                            "CategoryInfo          : " + errorRecord.CategoryInfo,
+                            "FullyQualifiedErrorId : " + errorRecord.FullyQualifiedErrorId })
                     };
+
                 }
                 _logger.LogError("PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, err.Message, err.StackTrace);
                 result.Exceptions.Add(err);
@@ -115,10 +118,9 @@ namespace Jupyter.PowerShell
                     {
                         Name = ex.GetType().FullName,
                         Message = string.Format(
-                                    "{0} : {1}\n{2}",
+                                    "{0} : {1}",
                                     ex.Source,
-                                    ex.Message,
-                                    ex.TargetSite),
+                                    ex.Message),
                         StackTrace = new List<string>(ex.StackTrace.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
                     };
                 }
@@ -185,14 +187,16 @@ namespace Jupyter.PowerShell
                             {
                                 Name = errorRecord.FullyQualifiedErrorId,
                                 Message = string.Format(
-                                            "{0} : {1}\n{2}\n    + CategoryInfo          : {3}\n    + FullyQualifiedErrorId : {4}",
-                                            errorRecord.InvocationInfo.InvocationName,
-                                            errorRecord.ToString(),
-                                            errorRecord.InvocationInfo.PositionMessage,
-                                            errorRecord.CategoryInfo,
-                                            errorRecord.FullyQualifiedErrorId),
-                                StackTrace = new List<string>(new[] { errorRecord.InvocationInfo.PositionMessage })
-                                // PS Core Only?                                   StackTrace = errorRecord.ScriptStackTrace.Split(new []{ "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                                    "{0} : {1}",
+                                    errorRecord.InvocationInfo.InvocationName,
+                                    errorRecord.ToString()).TrimEnd('\r','\n') + "\r\n",
+                                StackTrace = new List<string>(new[] {
+                                    errorRecord.InvocationInfo.PositionMessage,
+#if NETCORE
+                                    errorRecord.ScriptStackTrace,
+#endif
+                                    "CategoryInfo          : " + errorRecord.CategoryInfo,
+                                    "FullyQualifiedErrorId : " + errorRecord.FullyQualifiedErrorId })
                             };
                         }
                         exception = errorRecord.Exception;
