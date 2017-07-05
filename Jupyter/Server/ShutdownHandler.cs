@@ -23,13 +23,7 @@
 
             // TODO: Restart the PowerShell Engine
 
-            Message replyMessage = new Message()
-            {
-                UUID = message.Header.Session,
-                ParentHeader = message.Header,
-                Header = new Header(MessageType.ShutDownReply, message.Header.Session),
-                Content = shutdownRequest
-            };
+            Message replyMessage = new Message(MessageType.ShutDownReply, shutdownRequest, message.Header);
 
             _logger.LogInformation("Sending shutdown_response");
             _sender.Send(replyMessage, serverSocket);

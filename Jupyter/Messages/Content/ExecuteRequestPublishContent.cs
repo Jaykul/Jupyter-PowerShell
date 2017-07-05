@@ -4,6 +4,12 @@
 
     public class ExecuteRequestPublishContent : Content
     {
+        public ExecuteRequestPublishContent(string code, int executionCount)
+        {
+            Code = code;
+            ExecutionCount = executionCount;
+        }
+
         [JsonProperty("code")]
         public string Code { get; set; }
 

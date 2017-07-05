@@ -5,12 +5,12 @@
 
     public class StatusContent : Content
     {
-        public StatusContent(ExecutionState state)
+        public StatusContent(KernelState state)
         {
             ExecutionState = state;
         }
 
         [JsonProperty("execution_state")]
-        public ExecutionState ExecutionState { get; set; }
+        public KernelState ExecutionState { get; set; }
     }
 }

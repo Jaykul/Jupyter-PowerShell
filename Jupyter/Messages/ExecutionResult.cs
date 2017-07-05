@@ -5,9 +5,8 @@
     using System.Runtime.Serialization;
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum ExecutionState
+    public enum ExecutionResult
     {
-
         [EnumMember(Value = "ok")]
         Ok,
 
@@ -16,14 +15,5 @@
 
         [EnumMember(Value = "abort")]
         Abort,
-
-        [EnumMember(Value = "busy")]
-        Busy,
-
-        [EnumMember(Value = "idle")]
-        Idle,
-
-        [EnumMember(Value = "starting")]
-        Starting
     }
 }

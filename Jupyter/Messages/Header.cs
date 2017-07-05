@@ -8,10 +8,10 @@
     public class Header
     {
         [JsonProperty("msg_id")]
-        public string MessageId { get; set; }
+        public string MessageId { get; set; } = System.Guid.NewGuid().ToString();
 
         [JsonProperty("username")]
-        public string Username { get; set; }
+        public string Username { get; set; } = Constants.USERNAME;
 
         [JsonProperty("session")]
         public string Session { get; set; }
@@ -23,19 +23,12 @@
         public MessageType MessageType { get; set; }
 
         [JsonProperty("version")]
-        public string Version { get; set; }
-
-        public Header()
-        {
-        }
+        public string Version { get; set; } = Constants.PROTOCOL_VERSION;
 
         public Header(MessageType messageType, string session)
         {
-            Username = Constants.USERNAME;
             Session = session;
-            MessageId = System.Guid.NewGuid().ToString();
             MessageType = messageType;
-            Version = Constants.PROTOCOL_VERSION;
         }
     }
 }

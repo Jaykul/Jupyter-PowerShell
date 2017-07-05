@@ -64,7 +64,7 @@
 
             while (!this.stopEvent.Wait(0))
             {
-                Message message = this.GetMessage();
+                Message message = this.ReceiveMessage();
 
                 this.logger.LogInformation(JsonConvert.SerializeObject(message));
 
@@ -82,62 +82,50 @@
             }
         }
 
-        private Message GetMessage()
+        private Message ReceiveMessage()
         {
-            Message message = new Message();
-
             // There may be additional ZMQ identities attached; read until the delimiter <IDS|MSG>"
             // and store them in message.identifiers
             // http://ipython.org/ipython-doc/dev/development/messaging.html#the-wire-protocol
-            byte[] delimAsBytes = Encoding.ASCII.GetBytes(Constants.DELIMITER);
-            byte[] delim;
-            while (true)
+            byte[] delimiterBytes = Encoding.ASCII.GetBytes(Constants.DELIMITER);
+            byte[] delimiter;
+            var frames = new List<byte[]>();
+            do
             {
-                delim = this.server.ReceiveFrameBytes();
-                if (delim.SequenceEqual(delimAsBytes)) break;
-
-                message.Identifiers.Add(delim);
-            }
+                delimiter = server.ReceiveFrameBytes();
+                frames.Add(delimiter);
+            } while (!delimiter.SequenceEqual(delimiterBytes));
+            // strip delimiter
+            frames.RemoveAt(frames.Count - 1);
 
             // Getting Hmac
-            message.HMac = this.server.ReceiveFrameString();
-            this.logger.LogInformation(message.HMac);
+            var hmac = ReceiveFrame<string>();
 
             // Getting Header
-            string header = this.server.ReceiveFrameString();
-            this.logger.LogInformation(header);
-
-            message.Header = JsonConvert.DeserializeObject<Header>(header);
+            var header = ReceiveFrame<Header>();
 
             // Getting parent header
-            string parentHeader = this.server.ReceiveFrameString();
-            this.logger.LogInformation(parentHeader);
-
-            message.ParentHeader = JsonConvert.DeserializeObject<Header>(parentHeader);
+            var parent = ReceiveFrame<Header>();
 
             // Getting metadata
-            string metadata = this.server.ReceiveFrameString();
-            this.logger.LogInformation(metadata);
-
-            message.MetaData = JsonConvert.DeserializeObject<Dictionary<string, object>>(metadata);
+            var metaData = ReceiveFrame<Dictionary<string, object>>();
 
             // Getting content
-            string content = this.server.ReceiveFrameString();
-            this.logger.LogInformation(content);
+            Content content = null;
 
-            switch (message.Header.MessageType)
+            switch (header.MessageType)
             {
                 case MessageType.ExecuteRequest:
-                    message.Content = JsonConvert.DeserializeObject<ExecuteRequestContent>(content);
-                    break;
-                case MessageType.KernelInfoRequest:
-                    message.Content = null;
+                    content = ReceiveFrame<ExecuteRequestContent>();
                     break;
                 case MessageType.CompleteRequest:
-                    message.Content = JsonConvert.DeserializeObject<CompleteRequestContent>(content);
+                    content = ReceiveFrame<CompleteRequestContent>();
                     break;
                 case MessageType.ShutDownRequest:
-                    message.Content = JsonConvert.DeserializeObject<ShutdownContent>(content);
+                    content = ReceiveFrame<ShutdownContent>();
+                    break;
+                case MessageType.KernelInfoRequest:
+                    content = ReceiveFrame<Content>();
                     break;
                 //case MessageType.ExecuteInput:
                 //case MessageType.ExecuteReply:
@@ -152,14 +140,25 @@
                 //case MessageType.Error:
                 //case MessageType.Stream:
                 default:
-                    logger.LogInformation(message.Header.MessageType + " message not handled: " + content);
+                    logger.LogInformation(header.MessageType + " message not handled.");
+                    content = ReceiveFrame<Content>();
                     break;
             }
-            
 
-            return message;
+
+            return new Message(header.MessageType, content, parent, frames, header, hmac, metaData);
         }
 
+        private T ReceiveFrame<T>()
+        {
+            var frame = server.ReceiveFrameString();
+            logger.LogInformation(frame);
+            if(typeof(T) == typeof(string))
+            {
+                return new[] { frame }.Cast<T>().First();
+            }
+            return JsonConvert.DeserializeObject<T>(frame);
+        }
 
         public void Stop()
         {

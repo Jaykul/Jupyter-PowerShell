@@ -7,7 +7,7 @@
     {
         public ExecuteErrorReplyContent()
         {
-            this.Status = ExecutionState.Error;
+            this.Status = ExecutionResult.Error;
         }
 
         [JsonProperty("ename")]

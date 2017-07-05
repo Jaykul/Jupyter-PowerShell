@@ -7,7 +7,7 @@
     {
         public ExecuteResultReplyContent()
         {
-            this.Status = ExecutionState.Ok;
+            this.Status = ExecutionResult.Ok;
         }
 
         [JsonProperty("payload")]

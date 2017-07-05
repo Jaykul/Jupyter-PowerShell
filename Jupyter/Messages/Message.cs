@@ -8,31 +8,31 @@
     /// </summary>
     public class Message
     {
-        public Message()
-        {
-            this.Identifiers = new List<byte[]>();
-            this.UUID = string.Empty;
-            this.HMac = string.Empty;
-            this.MetaData = new Dictionary<string, object>();
-            this.Content = new Content();
-        }
-
         public Message(MessageType messageType, Content content, Header parentHeader)
         {
             UUID = parentHeader.Session;
             ParentHeader = parentHeader;
-            Header = new Header(messageType, UUID);
             Content = content;
+            Header = new Header(messageType, UUID);
+        }
+
+        public Message(MessageType messageType, Content content, Header parentHeader, List<byte[]> identifier, Header header, string hmac , Dictionary<string, object> metaData) :
+            this(messageType, content, parentHeader)
+        {
+            Identifiers = identifier;
+            Header = header;
+            HMac = hmac;
+            MetaData = metaData;
         }
 
         [JsonProperty("identifiers")]
-        public List<byte[]> Identifiers { get; set; }
+        public List<byte[]> Identifiers { get; set; } = new List<byte[]>();
 
         [JsonProperty("uuid")]
-        public string UUID { get; set; }
+        public string UUID { get; set; } = string.Empty;
 
         [JsonProperty("hmac")]
-        public string HMac { get; set; }
+        public string HMac { get; set; } = string.Empty;
 
         [JsonProperty("header")]
         public Header Header { get; set; }
@@ -41,11 +41,11 @@
         public Header ParentHeader { get; set; }
 
         [JsonProperty("metadata")]
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
 
         [JsonProperty("content")]
-        public Content Content { get; set; }
+        public Content Content { get; set; } = new Content();
 
-        
+
     }
 }

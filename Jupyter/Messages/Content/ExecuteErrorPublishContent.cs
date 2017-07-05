@@ -3,12 +3,10 @@
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class ExecuteErrorPublishContent : ExecuteReplyContent
+    public class ExecuteErrorPublishContent : Content
     {
-        public ExecuteErrorPublishContent()
-        {
-            this.Status = ExecutionState.Error;
-        }
+        [JsonProperty("execution_count")]
+        public int ExecutionCount { get; set; }
 
         [JsonProperty("ename")]
         public string EName { get; set; }
