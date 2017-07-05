@@ -9,6 +9,7 @@
     {
         private readonly Validator _validator;
         private readonly ILogger _logger;
+        private readonly JsonSerializerSettings _ignoreLoops = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
         public MessageSender(Validator validator, Microsoft.Extensions.Logging.ILogger logger)
         {
@@ -16,7 +17,7 @@
             _logger = logger;
         }
 
-        public bool Send(Message message, NetMQSocket socket)
+        public bool Send(NetMQSocket socket, Message message)
         {
             _logger.LogTrace("Sending Message: {0}", JsonConvert.SerializeObject(message));
             string hmac = _validator.CreateSignature(message);
@@ -34,20 +35,27 @@
             else
             {
                 // This is just a normal message so send the UUID
-                Send(message.UUID, socket);
+                Send(socket, message.UUID, true);
             }
 
-            Send(Constants.DELIMITER, socket);
-            Send(hmac, socket);
-            Send(JsonConvert.SerializeObject(message.Header), socket);
-            Send(JsonConvert.SerializeObject(message.ParentHeader), socket);
-            Send(JsonConvert.SerializeObject(message.MetaData), socket);
-            Send(JsonConvert.SerializeObject(message.Content, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }), socket, false);
+            Send(socket, Constants.DELIMITER);
+            Send(socket, hmac);
+            Send(socket, message.Header);
+            Send(socket, message.ParentHeader);
+            Send(socket, message.MetaData);
+            Send(socket, message.Content, false);
 
             return true;
         }
+        
 
-        private void Send(string message, NetMQSocket socket, bool sendMore = true)
+        private void Send(NetMQSocket socket, object message, bool sendMore = true)
+        {
+            string frame = JsonConvert.SerializeObject(message, _ignoreLoops);
+            socket.SendFrame(frame, sendMore);
+        }
+
+        private void Send(NetMQSocket socket, string message, bool sendMore = true)
         {
             socket.SendFrame(message, sendMore);
         }
