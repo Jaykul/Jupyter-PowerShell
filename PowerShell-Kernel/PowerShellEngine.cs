@@ -1,13 +1,12 @@
 ﻿using Jupyter.Server;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Text;
+using System.Reflection;
 
 namespace Jupyter.PowerShell
 {
@@ -27,47 +26,33 @@ namespace Jupyter.PowerShell
         {
             _options = options;
             _logger = logger;
-            Iss = InitialSessionState.CreateDefault();
+            Iss = InitialSessionState.CreateDefault2();
+
+            // Preload all cmdlets from this assembly
+            Assembly core = Assembly.GetExecutingAssembly();
+            Iss.LoadCmdlets(core);
+
+            // Pre-import any modules in our app's module folder
+            var path = Path.GetDirectoryName(core.Location);
+            Iss.ImportPSModulesFromPath(Path.Combine(path, "Modules"));
 
             // We may want to use a runspace pool? ps.RunspacePool = rsp;
             Runspace = RunspaceFactory.CreateRunspace(Iss);
             Runspace.Open();
-
-            //// We moved ModularInputsModule.dll into a subdirectory
-            //// So we need to use GetEntryAssembly to use the path of PowerShell.exe
-            //Assembly mps = Assembly.GetEntryAssembly(); // .GetExecutingAssembly();
-            //string path = Path.GetDirectoryName(mps.Location);
-            //if (!string.IsNullOrEmpty(path))
-            //{
-            //    // because this must work with PowerShell2, we can't use ImportPSModulesFromPath
-            //    path = Path.Combine(path, "Modules");
-            //    if (!Directory.Exists(path))
-            //    {
-            //        var logger = new ConsoleLogger();
-            //        logger.WriteLog(LogLevel.Warn, "The Modules Path '{0}' could not be found", path);
-            //    }
-            //    else
-            //    {
-            //        iss.ImportPSModule(Directory.GetDirectories(path));
-            //    }
-            //}
-            //return iss.LoadCmdlets(mps);
         }
+
 
         /// <summary>
         /// Adds read only variables to the shared initial session state.
         /// </summary>
         /// <param name="values">A collection of string tuples containing the name, value, and description of the variables to be added.</param>
-        public void AddReadOnlyVariables(IEnumerable<Tuple<string, string, string>> values)
+        public void AddReadOnlyVariables(params (string Name, object Value)[] values)
         {
-            foreach (var variable in values)
+            var readOnly = ScopedItemOptions.Constant & ScopedItemOptions.ReadOnly;
+            foreach (var v in values)
             {
-                Iss.Variables.Add(
-                    new SessionStateVariableEntry(
-                        variable.Item1,
-                        variable.Item2,
-                        variable.Item3,
-                        ScopedItemOptions.Constant & ScopedItemOptions.ReadOnly));
+                var variable = new PSVariable(v.Name, v.Value, readOnly);
+                Runspace.SessionStateProxy.PSVariable.Set(variable);
             }
         }
 
@@ -76,12 +61,12 @@ namespace Jupyter.PowerShell
         {
             var result = new ExecutionResult(_options);
             Pipeline pipeline = null;
-            System.Collections.ObjectModel.Collection<PSObject> output = null;
+            IEnumerable<PSObject> output = null;
             try
             {
                 pipeline = Runspace.CreatePipeline();
                 pipeline.Commands.AddScript(script);
-                output = pipeline.Invoke();
+                output = pipeline.Invoke().Where(o => o != null);
 
                 LogErrors(result, pipeline.Error);
             }
@@ -133,9 +118,9 @@ namespace Jupyter.PowerShell
             return result;
         }
 
-        private void CollectOutput(ExecutionResult result, System.Collections.ObjectModel.Collection<PSObject> output)
+        private void CollectOutput(ExecutionResult result, IEnumerable<PSObject> output)
         {
-            if (output?.Count > 0)
+            if (output != null && output.Any())
             {
                 result.Output.AddRange(output.Select(o => o.BaseObject));
                 try

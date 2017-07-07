@@ -22,8 +22,8 @@
         /// <param name="key">Shared key used to initialize the digest.</param>
         public Validator(ILogger logger, string key, string algorithm)
         {
-            this._logger = logger;
-            this._encoder = new UTF8Encoding();
+            _logger = logger;
+            _encoder = new UTF8Encoding();
             algorithm = algorithm.Replace("-", "").ToUpperInvariant();
             _logger.LogDebug(algorithm + ": '" + key + "'");
             try
@@ -31,11 +31,11 @@
                 switch(algorithm)
                 {
                     case "HMACSHA256":
-                        this._signatureGenerator = new HMACSHA256();
+                        _signatureGenerator = new HMACSHA256();
                         break;
 
                     default:
-                        this._signatureGenerator = HMAC.Create(algorithm);
+                        _signatureGenerator = HMAC.Create(algorithm);
                         break;
                 }
             }
@@ -51,20 +51,20 @@
         /// </summary>
         /// <returns>The signature.</returns>
         /// <param name="message">Message.</param>
-        public string CreateSignature(Message message)
+        public string CreateSignature(params string[] messages)
         {
-            this._signatureGenerator.Initialize();
-
-            List<string> messages = this.GetDigestMessages(message);
-
+            byte[] sourceBytes;
+            _signatureGenerator.Initialize();
             // For all items update the signature
-            foreach (string item in messages)
+            var last = messages.Length - 1;
+            for (var i = 0; i < last; i++)
             {
-                byte[] sourceBytes = this._encoder.GetBytes(item);
+                sourceBytes = this._encoder.GetBytes(messages[i]);
                 _signatureGenerator.TransformBlock(sourceBytes, 0, sourceBytes.Length, null, 0);
             }
 
-            _signatureGenerator.TransformFinalBlock(new byte[0], 0, 0);
+            sourceBytes = _encoder.GetBytes(messages[last]);
+            _signatureGenerator.TransformFinalBlock(sourceBytes, 0, sourceBytes.Length);
 
             // Calculate the digest and remove -
             return BitConverter.ToString(_signatureGenerator.Hash).Replace("-", "").ToLower();
@@ -76,31 +76,11 @@
         /// <returns>true</returns>
         /// <c>false</c>
         /// <param name="message">Message.</param>
-        public bool IsValidSignature(Message message)
+        public bool IsValidSignature(string hash, params string[] messages)
         {
-            string calculatedSignature = this.CreateSignature(message);
+            string calculatedSignature = this.CreateSignature(messages);
             this._logger.LogInformation(string.Format("Expected Signature: {0}", calculatedSignature));
-            return string.Equals(message.HMac, calculatedSignature, StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Gets the text used as the digest for the HMAC signature.
-        /// </summary>
-        /// <returns>The messages to add for digest.</returns>
-        /// <param name="message">Message.</param>
-        private List<string> GetDigestMessages(Message message)
-        {
-            if (message == null)
-            {
-                return new List<string>();
-            }
-
-            return new List<string>(){
-                JsonConvert.SerializeObject(message.Header),
-                JsonConvert.SerializeObject(message.ParentHeader),
-                JsonConvert.SerializeObject(message.MetaData),
-                JsonConvert.SerializeObject(message.Content, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore})
-            }; 
+            return string.Equals(hash, calculatedSignature, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

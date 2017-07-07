@@ -16,7 +16,11 @@ namespace Jupyter.Messages
         [EnumMember(Value = "execute_result")]
         ExecuteResult,
 
-        
+        [EnumMember(Value = "display_data")]
+        DisplayData,
+        [EnumMember(Value = "update_display_data")]
+        UpdateDisplayData,
+
         [EnumMember(Value = "kernel_info_request")]
         KernelInfoRequest,
         [EnumMember(Value = "kernel_info_reply")]

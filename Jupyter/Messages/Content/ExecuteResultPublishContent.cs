@@ -5,9 +5,8 @@
 
     public class ExecuteResultPublishContent : DisplayDataContent
     {
-        public ExecuteResultPublishContent(DisplayDataContent content, int executionCount = 0)
+        public ExecuteResultPublishContent(DisplayDataContent content, int executionCount = 0) : base(content.Data)
         {
-            Data = content.Data;
             MetaData = content.MetaData;
             ExecutionCount = executionCount;
         }

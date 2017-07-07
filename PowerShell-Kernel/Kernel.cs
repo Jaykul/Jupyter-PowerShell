@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Jupyter.Config;
+using System.Reflection;
 
 namespace Jupyter.PowerShell
 {
@@ -15,17 +16,32 @@ namespace Jupyter.PowerShell
 
         public static void Main(string[] args)
         {
-            var cwd = Directory.GetCurrentDirectory();
             var loggerFactory = new LoggerFactory();
+
+            var installPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var baseConfig = Path.Combine(installPath, "PowerShell-Kernel.Config.json");
+            var cwdConfig = Path.Combine(Directory.GetCurrentDirectory(), "PowerShell-Kernel.Config.json");
+
             var configBuilder = new ConfigurationBuilder()
-                                    .SetBasePath(cwd)
-                                    .AddJsonFile("Config.json", true);
+                                    .AddJsonFile(baseConfig, true)
+                                    .AddJsonFile(cwdConfig, true);
 
             configuration = configBuilder.Build();
 
             var loggerOptions = new LoggerOptions();
             configuration.GetSection("Logger").Bind(loggerOptions);
 
+            if (configuration.GetSection("Debug").GetValue<bool>("BreakOnStart"))
+            {
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    System.Diagnostics.Debugger.Break();
+                }
+                else
+                {
+                    System.Diagnostics.Debugger.Launch();
+                }
+            }
 
             if (loggerOptions.ConsoleOutput)
             {
@@ -48,18 +64,16 @@ namespace Jupyter.PowerShell
 
             ConnectionInformation connectionInformation = ConnectionInformation.FromFile(args[0]);
 
-            var powershellOptions = new PowerShellOptions();
-            configuration.GetSection("PowerShell").Bind(powershellOptions);
+            var options = new PowerShellOptions();
+            configuration.GetSection("PowerShell").Bind(options);
 
-            var engine = new PowerShellEngine(powershellOptions, logger);
+            var engine = new PowerShellEngine(options, logger);
             Session connection = new Session(connectionInformation, engine, logger);
-
+            engine.AddReadOnlyVariables(("JupyterSession", connection));
             connection.Wait();
 
             System.Threading.Thread.Sleep(60000);
         }
-
-
 
         private static void PrintAllArgs(string[] args)
         {            

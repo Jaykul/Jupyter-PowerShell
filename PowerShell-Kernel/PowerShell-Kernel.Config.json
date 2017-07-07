@@ -6,5 +6,9 @@
   "Logger": {
     "ConsoleOutput": false,
     "DebuggerOutput": false
+  },
+
+  "Debug": {
+    "BreakOnStart": true
   }
 }

@@ -13,7 +13,7 @@
             UUID = parentHeader.Session;
             ParentHeader = parentHeader;
             Content = content;
-            Header = new Header(messageType, UUID);
+            Header = new Header(messageType, parentHeader.Session);
         }
 
         public Message(MessageType messageType, Content content, Header parentHeader, List<byte[]> identifier, Header header, string hmac , Dictionary<string, object> metaData) :
@@ -45,7 +45,5 @@
 
         [JsonProperty("content")]
         public Content Content { get; set; } = new Content();
-
-
     }
 }

@@ -8,13 +8,11 @@
     public class KernelInfoHandler : IMessageHandler
     {
         private readonly ILogger _logger;
+        
 
-        private readonly MessageSender _sender;
-
-        public KernelInfoHandler(ILogger logger, MessageSender messageSender)
+        public KernelInfoHandler(ILogger logger)
         {
             _logger = logger;
-            _sender = messageSender;
         }
 
         public void HandleMessage(Message message, RouterSocket serverSocket, PublisherSocket ioPub)
@@ -22,7 +20,7 @@
             Message replyMessage = new Message(MessageType.KernelInfoReply, CreateKernelInfoReply(), message.Header);
 
             _logger.LogInformation("Sending kernel_info_reply");
-            _sender.Send(replyMessage, serverSocket);
+            serverSocket.SendMessage(replyMessage);
         }
 
         private KernelInfoReplyContent CreateKernelInfoReply()

@@ -50,10 +50,7 @@ namespace Jupyter.PowerShell
                 data.Add("application/json", new { output = Output });
             }
 
-            return new DisplayDataContent()
-            {
-                Data = data
-            };
+            return new DisplayDataContent(data);
         }
     }
 }

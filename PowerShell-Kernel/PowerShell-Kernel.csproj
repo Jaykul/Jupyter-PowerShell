@@ -43,12 +43,17 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Remove="Microsoft.NETCore.App" />
-    <PackageReference Include="System.Management.Automation" Version="6.1.7601.17515" />
+    <PackageReference Include="System.Management.Automation" Version="6.0.0-alpha17" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Jupyter\Jupyter.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Config\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="PowerShell-Kernel.Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@
     public class Header
     {
         [JsonProperty("msg_id")]
-        public string MessageId { get; set; } = System.Guid.NewGuid().ToString();
+        public string MessageId { get; set; } = System.Guid.NewGuid().ToString("N");
 
         [JsonProperty("username")]
         public string Username { get; set; } = Constants.USERNAME;
@@ -17,7 +17,7 @@
         public string Session { get; set; }
 
         [JsonProperty("date")]
-        public string Date { get; set; }
+        public string Date { get; set; } = System.DateTimeOffset.UtcNow.ToString("o");
 
         [JsonProperty("msg_type")]
         public MessageType MessageType { get; set; }

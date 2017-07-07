@@ -4,23 +4,45 @@
     using Microsoft.Extensions.Logging;
     using NetMQ;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Linq;
 
-    public class MessageSender
+    public static class MessageSender
     {
-        private readonly Validator _validator;
-        private readonly ILogger _logger;
-        private readonly JsonSerializerSettings _ignoreLoops = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+        private static readonly JsonSerializerSettings _ignoreLoops = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
 
-        public MessageSender(Validator validator, Microsoft.Extensions.Logging.ILogger logger)
-        {
-            _validator = validator;
-            _logger = logger;
-        }
+        public static Validator Validator { get; set; }
+        public static ILogger Logger { get; set; }
 
-        public bool Send(NetMQSocket socket, Message message)
+        private static string SessionId;
+        private static Header lastParentHeader;
+
+        public static bool SendMessage(this NetMQSocket socket, Message message)
         {
-            _logger.LogTrace("Sending Message: {0}", JsonConvert.SerializeObject(message));
-            string hmac = _validator.CreateSignature(message);
+            Logger?.LogTrace("Sending Message: {0}", JsonConvert.SerializeObject(message));
+            if(message.Header.MessageType == MessageType.Input)
+            {
+                lastParentHeader = message.ParentHeader;
+            }
+            if (string.IsNullOrEmpty(message.UUID))
+            {
+                message.UUID = SessionId;
+            }
+
+            if (string.IsNullOrEmpty(message.Header.Session))
+            {
+                message.Header.Session = SessionId;
+                message.ParentHeader = lastParentHeader;
+            }
+
+            var messageFrames = new[] {
+                JsonConvert.SerializeObject(message.Header),
+                JsonConvert.SerializeObject(message.ParentHeader),
+                JsonConvert.SerializeObject(message.MetaData),
+                JsonConvert.SerializeObject(message.Content)
+            };
+            string hmac = Validator.CreateSignature(messageFrames);
 
             if (message.Identifiers != null && message.Identifiers.Count > 0)
             {
@@ -35,31 +57,87 @@
             else
             {
                 // This is just a normal message so send the UUID
-                Send(socket, message.UUID, true);
+                socket.SendFrame(message.UUID, true);
             }
 
-            Send(socket, Constants.DELIMITER);
-            Send(socket, hmac);
-            Send(socket, message.Header);
-            Send(socket, message.ParentHeader);
-            Send(socket, message.MetaData);
-            Send(socket, message.Content, false);
+            socket.SendFrame(Constants.DELIMITER, true);
+            socket.SendFrame(hmac, true);
+            socket.SendFrame(messageFrames[0], true);
+            socket.SendFrame(messageFrames[1], true);
+            socket.SendFrame(messageFrames[2], true);
+            socket.SendFrame(messageFrames[3], false);
 
             return true;
         }
-        
 
-        private void Send(NetMQSocket socket, object message, bool sendMore = true)
+        public static Message ReceiveMessage(this NetMQSocket socket)
         {
-            string frame = JsonConvert.SerializeObject(message, _ignoreLoops);
-            socket.SendFrame(frame, sendMore);
-        }
+            // There may be additional ZMQ identities attached; read until the delimiter <IDS|MSG>"
+            // and store them in message.identifiers
+            // http://ipython.org/ipython-doc/dev/development/messaging.html#the-wire-protocol
+            byte[] delimiterBytes = Encoding.ASCII.GetBytes(Constants.DELIMITER);
+            byte[] delimiter;
+            var identifier = new List<byte[]>();
+            do
+            {
+                delimiter = socket.ReceiveFrameBytes();
+                identifier.Add(delimiter);
+            } while (!delimiter.SequenceEqual(delimiterBytes));
+            // strip delimiter
+            identifier.RemoveAt(identifier.Count - 1);
 
-        private void Send(NetMQSocket socket, string message, bool sendMore = true)
-        {
-            socket.SendFrame(message, sendMore);
-        }
+            var hmac = socket.ReceiveFrameString();
+            var headerFrame = socket.ReceiveFrameString();
+            var parentFrame = socket.ReceiveFrameString();
+            var metadataFrame = socket.ReceiveFrameString();
+            var contentFrame = socket.ReceiveFrameString();
 
+            if (!Validator.IsValidSignature(hmac, headerFrame, parentFrame, metadataFrame, contentFrame))
+            {
+                return null;
+            }
+
+            var header = JsonConvert.DeserializeObject<Header>(headerFrame);
+            Content content;
+
+            switch (header.MessageType)
+            {
+                case MessageType.ExecuteRequest:
+                    content = JsonConvert.DeserializeObject<ExecuteRequestContent>(contentFrame);
+                    break;
+                case MessageType.CompleteRequest:
+                    content = JsonConvert.DeserializeObject<CompleteRequestContent>(contentFrame);
+                    break;
+                case MessageType.ShutDownRequest:
+                    content = JsonConvert.DeserializeObject<ShutdownContent>(contentFrame);
+                    break;
+                case MessageType.KernelInfoRequest:
+                    content = JsonConvert.DeserializeObject<Content>(contentFrame);
+                    break;
+                //case MessageType.ExecuteInput:
+                //case MessageType.ExecuteReply:
+                //case MessageType.ExecuteResult:
+                //case MessageType.CompleteReply:
+                //case MessageType.ShutDownReply:
+                //case MessageType.KernelInfoReply:
+
+                //case MessageType.Status:
+                //case MessageType.Output:
+                //case MessageType.Input:
+                //case MessageType.Error:
+                //case MessageType.Stream:
+                default:
+                    Logger?.LogInformation(header.MessageType + " message not handled.");
+                    content = new Content();
+                    break;
+            }
+
+            // Update the static session
+            SessionId = header.Session;
+
+            return new Message(header.MessageType, content, JsonConvert.DeserializeObject<Header>(parentFrame),
+                        identifier, header, hmac, JsonConvert.DeserializeObject<Dictionary<string, object>>(metadataFrame));
+        }
 
     }
 }
