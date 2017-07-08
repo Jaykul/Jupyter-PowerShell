@@ -14,9 +14,9 @@
         public Dictionary<string,object> Data { get; set; }
 
         [JsonProperty("metadata")]
-        public Dictionary<string,string> MetaData { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
 
         [JsonProperty("transient")]
-        public Dictionary<string, string> Transient { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, object> Transient { get; set; } = new Dictionary<string, object>();
     }
 }

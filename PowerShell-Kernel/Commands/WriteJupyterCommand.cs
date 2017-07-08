@@ -3,6 +3,8 @@ namespace Jupyter.PowerShell.Commands
 {
     using Jupyter.Messages;
     using Jupyter.Server;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
@@ -26,6 +28,7 @@ namespace Jupyter.PowerShell.Commands
         };
 
         [Parameter(ValueFromPipeline =true, Mandatory = true)]
+        [ValidateNotNullOrEmpty()]
         public PSObject InputObject { get; set; }
 
         [Parameter(ParameterSetName = "IdDisplay")]
@@ -33,6 +36,43 @@ namespace Jupyter.PowerShell.Commands
 
         [Parameter(ParameterSetName = "UpdateDisplay")]
         public string Update { get; set; }
+
+        [Parameter()]
+        public Hashtable Metadata { get; set; }
+
+        private object Normalize(object value, string mimetype)
+        {
+            if(value is PSObject)
+            {
+                value = ((PSObject)value).BaseObject;
+            }
+
+            if (!(value is string))
+            {
+
+                if (value is IEnumerable<string>)
+                {
+                    value = string.Join("\r\n", value);
+                }
+                else if (value is IEnumerable<object> && ((IEnumerable<object>)value).All(o => o is string || o is PSObject && ((PSObject)o).BaseObject is string))
+                {
+                    value = string.Join("\r\n", ((IEnumerable<object>)value).Select(o => o.ToString()));
+                }
+            }
+
+            if (mimetype.ToLowerInvariant().EndsWith("json"))
+            {
+                try
+                {
+                    return JToken.Parse(value.ToString());
+                }
+                catch
+                {
+                    return value;
+                }
+            }
+            return value;
+        }
 
         protected override void ProcessRecord()
         {
@@ -46,12 +86,12 @@ namespace Jupyter.PowerShell.Commands
                 if (types.Keys.Contains(name))
                 {
                     isJupyterData = true;
-                    data.Add(types[name], property.Value);
+                    data.Add(types[name], Normalize(property.Value, types[name]));
                 }
                 else if(name.Contains('/'))
                 {
                     isJupyterData = true;
-                    data.Add(name, property.Value);
+                    data.Add(name, Normalize(property.Value, name));
                 }                
             }
 
@@ -65,12 +105,12 @@ namespace Jupyter.PowerShell.Commands
                         if (types.Keys.Contains(name))
                         {
                             isJupyterData = true;
-                            data.Add(types[name], dictionary[property]);
+                            data.Add(types[name], Normalize(dictionary[property], types[name]));
                         }
                         else if (name.Contains('/'))
                         {
                             isJupyterData = true;
-                            data.Add(name, dictionary[property]);
+                            data.Add(name, Normalize(dictionary[property], name));
                         }
                     }
                 }
@@ -80,14 +120,22 @@ namespace Jupyter.PowerShell.Commands
             {
                 if (InputObject.BaseObject is string)
                 {
-                    data.Add("text/plain", InputObject.BaseObject);
+                    data.Add("text/plain", Normalize(InputObject.BaseObject, "text/plain"));
                 }
                 else
                 {
-                    data.Add("application/json", InputObject.BaseObject);
+                    data.Add("application/json", Normalize(InputObject.BaseObject, "application/json"));
                 }
             }
             var content = new DisplayDataContent(data);
+
+            if (Metadata != null)
+            {
+                foreach (var key in Metadata.Keys)
+                {
+                    content.MetaData.Add(key.ToString(), Metadata[key]);
+                }
+            }
 
             var type = MessageType.DisplayData;
             
