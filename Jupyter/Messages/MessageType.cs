@@ -26,6 +26,27 @@ namespace Jupyter.Messages
         [EnumMember(Value = "kernel_info_reply")]
         KernelInfoReply,
 
+        [EnumMember(Value = "comm_open")]
+        CommOpen,
+        [EnumMember(Value = "comm_msg")]
+        CommMessage,
+        [EnumMember(Value = "comm_close")]
+        CommClose,
+        [EnumMember(Value = "comm_info")]
+        CommInfo,
+        [EnumMember(Value = "comm_info_request")]
+        CommInfoRequest,
+        [EnumMember(Value = "comm_info_reply")]
+        CommInfoReply,
+
+        [EnumMember(Value = "inspect_request")]
+        InspectRequest,
+        [EnumMember(Value = "inspect_reply")]
+        InspectReply,
+
+        [EnumMember(Value = "clear_output")]
+        ClearOutput,
+
         [EnumMember(Value = "complete_request")]
         CompleteRequest,
         [EnumMember(Value = "complete_reply")]
