@@ -72,25 +72,12 @@
 
         public static Message ReceiveMessage(this NetMQSocket socket)
         {
-            // There may be additional ZMQ identities attached; read until the delimiter <IDS|MSG>"
-            // and store them in message.identifiers
-            // http://ipython.org/ipython-doc/dev/development/messaging.html#the-wire-protocol
-            byte[] delimiterBytes = Encoding.ASCII.GetBytes(Constants.DELIMITER);
-            byte[] delimiter;
-            var identifier = new List<byte[]>();
-            do
-            {
-                delimiter = socket.ReceiveFrameBytes();
-                identifier.Add(delimiter);
-            } while (!delimiter.SequenceEqual(delimiterBytes));
-            // strip delimiter
-            identifier.RemoveAt(identifier.Count - 1);
-
-            var hmac = socket.ReceiveFrameString();
-            var headerFrame = socket.ReceiveFrameString();
-            var parentFrame = socket.ReceiveFrameString();
+            var identifier    = socket.ReceiveFrameIdentifier();
+            var hmac          = socket.ReceiveFrameString();
+            var headerFrame   = socket.ReceiveFrameString();
+            var parentFrame   = socket.ReceiveFrameString();
             var metadataFrame = socket.ReceiveFrameString();
-            var contentFrame = socket.ReceiveFrameString();
+            var contentFrame  = socket.ReceiveFrameString();
 
             if (!Validator.IsValidSignature(hmac, headerFrame, parentFrame, metadataFrame, contentFrame))
             {
@@ -127,7 +114,7 @@
                 //case MessageType.Error:
                 //case MessageType.Stream:
                 default:
-                    Logger?.LogInformation(header.MessageType + " message not handled.");
+                    Logger?.LogWarning(header.MessageType + " message not handled.");
                     content = new Content();
                     break;
             }
@@ -139,5 +126,22 @@
                         identifier, header, hmac, JsonConvert.DeserializeObject<Dictionary<string, object>>(metadataFrame));
         }
 
+        private static List<byte[]> ReceiveFrameIdentifier(this NetMQSocket socket)
+        {
+            // There may be additional ZMQ identities attached; read until the delimiter <IDS|MSG>"
+            // and store them in message.identifiers
+            // http://ipython.org/ipython-doc/dev/development/messaging.html#the-wire-protocol
+            byte[] delimiterBytes = Encoding.ASCII.GetBytes(Constants.DELIMITER);
+            byte[] delimiter;
+            var identifier = new List<byte[]>();
+            do
+            {
+                delimiter = socket.ReceiveFrameBytes();
+                identifier.Add(delimiter);
+            } while (!delimiter.SequenceEqual(delimiterBytes));
+            // strip delimiter
+            identifier.RemoveAt(identifier.Count - 1);
+            return identifier;
+        }
     }
 }
