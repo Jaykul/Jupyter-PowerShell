@@ -31,14 +31,18 @@ namespace Jupyter.PowerShell.Commands
         [ValidateNotNullOrEmpty()]
         public PSObject InputObject { get; set; }
 
-        [Parameter(ParameterSetName = "IdDisplay")]
+        [Parameter(ParameterSetName = "IdDisplay", Mandatory = true)]
         public string Id { get; set; }
 
-        [Parameter(ParameterSetName = "UpdateDisplay")]
+        [Parameter(ParameterSetName = "UpdateDisplay", Mandatory = true)]
         public string Update { get; set; }
 
         [Parameter()]
         public Hashtable Metadata { get; set; }
+
+        [Parameter()]
+        [ValidateSet("text", "html", "markdown", "latex", "json", "javascript", "svg", "png", "jpeg")]
+        public string MimeType { get; set; }
 
         private object Normalize(object value, string mimetype)
         {
@@ -73,26 +77,45 @@ namespace Jupyter.PowerShell.Commands
             }
             return value;
         }
+        protected override void BeginProcessing()
+        {
+            base.BeginProcessing();
+
+            if (!string.IsNullOrEmpty(MimeType))
+            {
+                MimeType = types[MimeType];
+            }
+        }
 
         protected override void ProcessRecord()
         {
             base.ProcessRecord();
 
-            var data = new Dictionary<string,object>();
+            var data = new Dictionary<string, object>();
             var isJupyterData = false;
-            foreach(var property in  InputObject.Properties)
+
+            // if they override the mimetype, force the issue
+            if (!string.IsNullOrEmpty(MimeType))
             {
-                var name = property.Name.ToLower();
-                if (types.Keys.Contains(name))
+                isJupyterData = true;
+                data.Add(MimeType, Normalize(InputObject.BaseObject, MimeType));
+            }
+            else
+            {
+                foreach (var property in InputObject.Properties)
                 {
-                    isJupyterData = true;
-                    data.Add(types[name], Normalize(property.Value, types[name]));
+                    var name = property.Name.ToLower();
+                    if (types.Keys.Contains(name))
+                    {
+                        isJupyterData = true;
+                        data.Add(types[name], Normalize(property.Value, types[name]));
+                    }
+                    else if (name.Contains('/'))
+                    {
+                        isJupyterData = true;
+                        data.Add(name, Normalize(property.Value, name));
+                    }
                 }
-                else if(name.Contains('/'))
-                {
-                    isJupyterData = true;
-                    data.Add(name, Normalize(property.Value, name));
-                }                
             }
 
             if(!isJupyterData)
@@ -127,8 +150,8 @@ namespace Jupyter.PowerShell.Commands
                     data.Add("application/json", Normalize(InputObject.BaseObject, "application/json"));
                 }
             }
-            var content = new DisplayDataContent(data);
 
+            var content = new DisplayDataContent(data);
             if (Metadata != null)
             {
                 foreach (var key in Metadata.Keys)
