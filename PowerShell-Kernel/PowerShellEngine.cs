@@ -75,21 +75,24 @@ namespace Jupyter.PowerShell
                 if (result.Error == null)
                 {
                     var errorRecord = err.ErrorRecord;
-                    result.Error = new ErrorResult()
+                    if (errorRecord != null)
                     {
-                        Name = errorRecord.FullyQualifiedErrorId,
-                        Message = string.Format(
-                                    "{0} : {1}\r\n",
-                                    errorRecord.InvocationInfo.InvocationName,
-                                    errorRecord.ToString()),
-                        StackTrace = new List<string>(new[] {
-                            errorRecord.InvocationInfo.PositionMessage,
+                        result.Error = new ErrorResult()
+                        {
+                            Name = errorRecord.FullyQualifiedErrorId,
+                            Message = string.Format(
+                                        "{0} : {1}\r\n",
+                                        errorRecord.InvocationInfo?.InvocationName,
+                                        errorRecord.ToString()),
+                            StackTrace = new List<string>(new[] {
+                            errorRecord.InvocationInfo?.PositionMessage,
 #if NETCORE
                             errorRecord.ScriptStackTrace,
 #endif
                             "CategoryInfo          : " + errorRecord.CategoryInfo,
                             "FullyQualifiedErrorId : " + errorRecord.FullyQualifiedErrorId })
-                    };
+                        };
+                    }
 
                 }
                 _logger.LogError("PowerShell Exception in ExecuteRequest {0}:\r\n{1}\r\n{2}", script, err.Message, err.StackTrace);
