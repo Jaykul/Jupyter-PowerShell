@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26608.5
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jupyter", "Jupyter\Jupyter.csproj", "{D89EF375-F71D-4D12-BD9C-38B98D2A5CEA}"
 EndProject
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Install.ps1 = Install.ps1
 		kernel.json = kernel.json
 		LICENSE.md = LICENSE.md
+		nuget.config = nuget.config
 		ReadMe.ipynb = ReadMe.ipynb
 		ReadMe.md = ReadMe.md
 	EndProjectSection
@@ -35,5 +36,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A59C3E1-7114-4849-901C-2CDB42CCF1B8}
 	EndGlobalSection
 EndGlobal

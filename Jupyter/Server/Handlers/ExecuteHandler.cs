@@ -1,4 +1,4 @@
-﻿namespace Jupyter.Server
+﻿namespace Jupyter.Server.Handlers
 {
     using System;
     using System.Collections.Generic;

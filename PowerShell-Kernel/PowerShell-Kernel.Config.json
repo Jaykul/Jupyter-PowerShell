@@ -4,11 +4,11 @@
   },
 
   "Logger": {
-    "ConsoleOutput": false,
+    "ConsoleOutput": true,
     "DebuggerOutput": false
   },
 
   "Debug": {
-    "BreakOnStart": false
+    "BreakOnStart": true
   }
 }

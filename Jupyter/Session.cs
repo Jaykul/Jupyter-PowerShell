@@ -2,6 +2,7 @@
 {
     using Jupyter.Messages;
     using Jupyter.Server;
+    using Jupyter.Server.Handlers;
     using Microsoft.Extensions.Logging;
     using NetMQ.Sockets;
     using System.Collections.Generic;

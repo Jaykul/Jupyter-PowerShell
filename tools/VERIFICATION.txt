@@ -1,0 +1,11 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+To verify the files, from the root of the package output:
+
+# Remove the nuget-generated folders and files:
+Remove-Item _rels, package, *.* -recurse
+
+# Check the catalog against all the remaining files:
+Test-FileCatalog .\tools\Jupyter-PowerShell.cat . -Detailed

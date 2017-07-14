@@ -10,6 +10,7 @@
     using NetMQ.Sockets;
     using Jupyter.Messages;
     using Newtonsoft.Json;
+    using Jupyter.Server.Handlers;
 
     public class Shell : IKernelSocketProvider
     {
