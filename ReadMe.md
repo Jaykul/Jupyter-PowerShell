@@ -22,11 +22,11 @@ Apart from the built-in Jupyter features, I'm going to add some output enhanceme
 * If you output HTML, it's rendered. I'm currently detecting this in the most simplistic fashion: by testing if the output starts with "<" and ends with ">". That probably needs work, but it's good enough for now.
 * When a command outputs objects, you get the text rendering, but the actual objects are also returned as application/json data.
 
-## PowerShell Core *and Full*
+## PowerShell Core
 
-In order to get cross-platform support, this kernel is using [PowerShell Core](https://github.com/PowerShell/PowerShell), which means you'll want to have PowerShell 6 Beta 3 installed to try it out. As of today, it also builds for "Full Framework" Windows PowerShell!
+In order to get cross-platform support, this kernel is based on [PowerShell Core](https://github.com/PowerShell/PowerShell).
 
-To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [dotnet core 2 preview](https://www.microsoft.com/net/core/preview).  You can build it by running `dotnet restore; dotnet build` from the root. If you want to contribute --and want to build it in Visual Studio-- you need [VS 2017 Preview version 15.3](https://www.visualstudio.com/vs/preview/).
+To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [dotnet core 2](https://www.microsoft.com/net/core).  You can build it by running `dotnet restore; dotnet build` from the root. If you want to build it in Visual Studio, you need VS 2017 version 15.3 or higher.
 
 ## Examples
 

@@ -31,7 +31,7 @@
 
         public RouterSocket ShellSocket { get => serverSocket; }
         public PublisherSocket PublishSocket { get => ioPubSocket; }
-        
+
 
         public Shell(ILogger logger,
                      string addressShell,

@@ -4,7 +4,8 @@
     <OutputPath>$(SolutionDir)\Output\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks>
+    <!--<TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks>-->
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <Description>A .NET Framewok library for making Jupyter kernels</Description>
     <PackageId>Jupyter-Kernel</PackageId>
     <Authors>Joel "Jaykul" Bennett</Authors>

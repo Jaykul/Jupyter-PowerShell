@@ -6,9 +6,6 @@ param(
     # The path where the kernel executables are (should contain at least the 'netcoreapp2.0' or 'net461' folder)
     $InstallPath = $(Split-Path $PSScriptRoot)
 )
-
-Write-Warning "The current preview of Jupyter-PowerShell requires a preview release of dotnet $dotnetCLIRequiredVersion"
-
 # Use the .NET Core APIs to determine the current platform; if a runtime
 # exception is thrown, we are on FullCLR, not .NET Core.
 try {
@@ -33,7 +30,7 @@ try {
 
 if ($IsWindows) {
     if (!$KernelFolder) {
-        $KernelFolder = Join-Path $Env:AppData "jupyter\kernels\"
+        $KernelFolder = Join-Path $Env:AppData "Jupyter\kernels\"
     }
     $Targets = @("Windows", "WindowsPowerShell")
 }
@@ -56,7 +53,8 @@ foreach($target in $Targets) {
 
     if (!(Test-Path $kernelPath)) {
         Write-Warning "
-        Can't find the $target PowerShell kernel file in $kernelPath
+        Can't find the $target PowerShell kernel file in:
+        $kernelPath
 
         Expected the $target kernel to be in the same folder with this script.
 

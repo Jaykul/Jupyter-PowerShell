@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "PowerShell-Kernel": {
+      "commandName": "Project"
+    }
+  }
+}

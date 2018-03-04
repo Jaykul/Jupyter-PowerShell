@@ -32,9 +32,12 @@ namespace Jupyter.PowerShell
             Assembly core = Assembly.GetExecutingAssembly();
             Iss.LoadCmdlets(core);
 
-            // Pre-import any modules in our app's module folder
-            var path = Path.GetDirectoryName(core.Location);
-            Iss.ImportPSModulesFromPath(Path.Combine(path, "Modules"));
+            // FOR CORE:
+            // Fix the PSModulePath, because now we're a full-blown host and ship with our own modules
+            var oldPath = Environment.GetEnvironmentVariable("PSModulePath", EnvironmentVariableTarget.Process);
+            var localModules = Path.Combine(Path.GetDirectoryName(core.Location), "Modules");
+            var newPath = string.Join(Path.PathSeparator, oldPath.Split(Path.PathSeparator).Append(localModules).Distinct());
+            Environment.SetEnvironmentVariable("PSModulePath", newPath, EnvironmentVariableTarget.Process);
 
             // We may want to use a runspace pool? ps.RunspacePool = rsp;
             Runspace = RunspaceFactory.CreateRunspace(Iss);
@@ -139,7 +142,7 @@ namespace Jupyter.PowerShell
                     //pipeline.Commands.Add(formatter);
                     //result.OutputJson = string.Join("\n", pipeline.Invoke(JsonWrapper.Wrap(script, output)).Select(line => line.ToString().Replace("\r\n","\n")));
 
-                    // Users need to output their own HTML, ConvertTo-Html is *way* too flawed. 
+                    // Users need to output their own HTML, ConvertTo-Html is *way* too flawed.
                     // BUGBUG: need a better way to detect html?
                     if (output.First().BaseObject is string && result.OutputString.StartsWith("<") && result.OutputString.EndsWith(">"))
                     {

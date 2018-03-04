@@ -38,7 +38,7 @@
 
         public RouterSocket ShellSocket { get => _shell.ShellSocket; }
         public PublisherSocket PublishSocket { get => _shell.PublishSocket; }
-        
+
         public void Wait()
         {
             _shell.GetWaitEvent().Wait();
