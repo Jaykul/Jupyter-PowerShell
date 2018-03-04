@@ -9,7 +9,9 @@
     <RootNamespace>Jupyter.PowerShell</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
-    <TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks>
+
+    <!-- <TargetFrameworks>net462;netcoreapp2.0</TargetFrameworks> -->
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <Description>A PowerShell kernel for Jupyter</Description>
     <PackageId>Jupyter-PowerShell</PackageId>
     <Authors>Joel "Jaykul" Bennett</Authors>
@@ -27,25 +29,31 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <RuntimeFrameworkVersion>2.0.0-preview3-25426-01</RuntimeFrameworkVersion>
+    <RuntimeIdentifiers>linux-x64;osx.10.12-x64;win7-x64</RuntimeIdentifiers>
+    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
   </ItemGroup>
+  <!--
+    Until there's a PowerShell Standard v5 reference package,
+    we need to reference SMA differently for each platform:
+    The 6.0.0 version is in beta on the MyGet feed
+    The 6.1.7601 version is in nuget and it's NOT PowerShell 6.1 at all (*sigh*)
+  -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.0.0-beta.4" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="6.0.0-beta.4" />
-    <PackageReference Include="Microsoft.WSMan.Management" Version="6.0.0-beta.4" />
-    <PackageReference Include="System.Management.Automation" Version="6.0.0-beta.4" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.0.0" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="6.0.0" />
+    <PackageReference Include="Microsoft.WSMan.Management" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Remove="Microsoft.NETCore.App" />
-    <PackageReference Include="System.Management.Automation" Version="6.0.0-alpha17" />
+    <PackageReference Include="Microsoft.PowerShell.5.ReferenceAssemblies" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Jupyter\Jupyter.csproj" />

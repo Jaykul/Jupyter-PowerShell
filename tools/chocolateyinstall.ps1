@@ -3,7 +3,7 @@ param(
     # The path to put our kernel.json folders in
     $KernelFolder,
 
-    # The path where the kernel executables are (should contain the 'net461' and 'netcoreapp2.0' folders)
+    # The path where the kernel executables are (should contain at least the 'netcoreapp2.0' or 'net461' folder)
     $InstallPath = $(Split-Path $PSScriptRoot)
 )
 
@@ -30,111 +30,62 @@ try {
     }
 }
 
-$dotnetCLIChannel = "preview"
-$dotnetCLIRequiredVersion = "2.0.0-preview2-006502"
-
-function script:Test-Command([string]$command, [string]$NotFoundMessage) {
-    if (Get-Command $command -ErrorAction SilentlyContinue) {
-        return $true
-    } else {
-        if ($NotFoundMessage -ne $null) {
-            Write-Warning $NotFoundMessage
-        }
-        return $false
-    }
-}
-
-# Try to fix the Path until we can find dotnet.exe
-$dotnetPath = if ($IsWindows) {
-    "$env:ProgramFiles\dotnet" + ';' + "$env:LocalAppData\Microsoft\dotnet"
-} else {
-    "$env:HOME/.dotnet"
-}
-
-$Targets = @()
 
 if ($IsWindows) {
-    $Targets += "PowerShell-Full"
-    if(!$KernelFolder) {
+    if (!$KernelFolder) {
         $KernelFolder = Join-Path $Env:AppData "jupyter\kernels\"
     }
-} else {
-    if(!$KernelFolder) {
-        if($IsLinux) {
-            $KernelFolder = "~/.local/share/jupyter/kernels"
-        } else {
-            $KernelFolder = "~/Library/Jupyter/kernels"
-        }
+    $Targets = @("Windows", "WindowsPowerShell")
+}
+if($IsLinux) {
+    if (!$KernelFolder) {
+        $KernelFolder = "~/.local/share/jupyter/kernels"
     }
+    $Targets = @("Linux")
+}
+if($IsOSX) {
+    if (!$KernelFolder) {
+        $KernelFolder = "~/Library/Jupyter/kernels"
+    }
+    $Targets = @("Mac")
 }
 
-if (-not (Test-Command 'dotnet')) {
-    $originalPath = $env:PATH
-    $env:PATH += [IO.Path]::PathSeparator + $dotnetPath
-    if (-not (Test-Command 'dotnet')) {
-        $env:PATH = $originalPath
-    }
-}
-
-
-if(Test-Command 'dotnet' "'dotnet' not found. In order to use the 'PowerShell (Core)' Jupyter kernel, you need to install dotnet core.") {
-    if (($dotnetCLIIntalledVersion = dotnet --version) -eq $dotnetCLIRequiredVersion) {
-        $Targets += "PowerShell-Core"
-    } else {
-        Write-Warning "
-        The currently installed 'dotnet' (.NET Command Line Tools) is not the expected version.
-
-        Installed version: $dotnetCLIIntalledVersion
-        Expected version: $dotnetCLIRequiredVersion
-
-        You can get the latest version from https://microsoft.com/net/core/preview or by downloading and running:
-
-        https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.$( if($IsWindows){ "ps1" } else { "sh" } )
-        `n
-        "
-        if(!$IsWindows) {
-            Write-Error "No PowerShell kernel installed. Install dotnet $dotnetCLIRequiredVersion to your Path and run '$PSCommandPath' again."
-        }
-    }
-}
 
 foreach($target in $Targets) {
-    $kernelFile = Join-Path $kernelFolder "$target\kernel.json"
-
-    Remove-Item (Join-Path $InstallPath "$target\*.pdb")
-    $kernelPath = Resolve-Path (Join-Path $InstallPath "$target\PowerShell-Kernel.???")
+    $kernelPath = Join-Path $InstallPath "$target\PowerShell-Kernel.dll"
 
     if (!(Test-Path $kernelPath)) {
         Write-Warning "
-        Can't find the PowerShell kernel file in $kernelPath
+        Can't find the $target PowerShell kernel file in $kernelPath
 
         Expected the $target kernel to be in the same folder with this script.
 
-        If you're running this script from the source code rather than a build:
-        - Build the project by running: dotnet restore; dotnet build;
-        - Copy this file to the 'Debug' or 'Release' output folder
-        - Re-run this file
+        If you're running this from source code, you must first build using build.ps1
+        Then you can re-run the copy of this file WITHIN the build output ...
         `n
         "
+        continue
     }
     # Necessary for windows only:
+    $kernelPath = Resolve-Path $kernelPath
     $kernelPath = $kernelPath -replace "\\", "\\"
 
+    $targetName = if ($target -eq "WindowsPowerShell") { "WindowsPowerShell"  } else { "PowerShell" }
+    $kernelFile = Join-Path $kernelFolder "$targetName\kernel.json"
+
+    # Make sure the kernel folder exists
     $null = New-Item -Path (Split-Path $kernelFile) -Force -ItemType Directory
 
     $kernelData = @(
         "{"
         "  ""argv"": ["
-        "    ""dotnet"","
         "    ""$kernelPath"","
         "    ""{connection_file}"""
         "  ],"
-        "  ""display_name"": ""$($target -replace '-(.*)',' ($1)')"","
+        "  ""display_name"": ""$targetName"","
         "  ""language"": ""PowerShell"""
         "}"
-    )
+    ) -join "`n"
 
-    if($target -match "Full") { $kernelData = $kernelData -notmatch "dotnet" }
-
-    Set-Content -Path $kernelFile -Value ($kernelData -join "`n")
+    Set-Content -Path $kernelFile -Value $kernelData
 }
