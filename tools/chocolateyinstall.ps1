@@ -32,7 +32,7 @@ if ($IsWindows) {
     if (!$KernelFolder) {
         $KernelFolder = Join-Path $Env:AppData "Jupyter\kernels\"
     }
-    $Targets = @("Windows", "WindowsPowerShell")
+    $Targets = @("Windows") #, "WindowsPowerShell")
 }
 if($IsLinux) {
     if (!$KernelFolder) {
