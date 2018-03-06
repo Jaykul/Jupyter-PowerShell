@@ -6,7 +6,9 @@ param(
 Push-Location $PSScriptRoot
 
 ## Clean ##
-Remove-Item (Join-Path $PSScriptRoot "Output\${Configuration}") -recurse
+if (Test-Path ".\Output\${Configuration}") {
+    Remove-Item (Join-Path $PSScriptRoot "Output\${Configuration}") -recurse
+}
 
 ## Build ##
 dotnet restore
