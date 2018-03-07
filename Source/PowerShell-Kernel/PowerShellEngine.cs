@@ -34,7 +34,8 @@ namespace Jupyter.PowerShell
 
             // FOR CORE:
             // Fix the PSModulePath, because now we're a full-blown host and ship with our own modules
-            var oldPath = Environment.GetEnvironmentVariable("PSModulePath", EnvironmentVariableTarget.Process);
+            // TODO: What should this default be?
+            var oldPath = Environment.GetEnvironmentVariable("PSModulePath", EnvironmentVariableTarget.Process) ?? "";
             var localModules = Path.Combine(Path.GetDirectoryName(core.Location), "Modules");
             var newPath = string.Join(Path.PathSeparator, oldPath.Split(Path.PathSeparator).Append(localModules).Distinct());
             Environment.SetEnvironmentVariable("PSModulePath", newPath, EnvironmentVariableTarget.Process);

@@ -1,0 +1,8 @@
+{
+  "argv": [
+    "PowerShell-Kernel",
+    "{connection_file}"
+  ],
+  "display_name": "PowerShell",
+  "language": "PowerShell"
+}

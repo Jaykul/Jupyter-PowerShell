@@ -9,6 +9,6 @@
   },
 
   "Debug": {
-    "BreakOnStart": true
+    "BreakOnStart": false
   }
 }
