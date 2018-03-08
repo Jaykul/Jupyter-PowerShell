@@ -134,6 +134,7 @@ namespace Jupyter.PowerShell
                 {
                     Pipeline pipeline = Runspace.CreatePipeline();
                     var formatter = new Command("Out-String");
+                    formatter.Parameters.Add("Width", 120);
                     pipeline.Commands.Add(formatter);
 
                     result.OutputString = string.Join("\n", pipeline.Invoke(output).Select(line => line.ToString())).Trim();
