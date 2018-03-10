@@ -52,8 +52,6 @@
   -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.0.1.1" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="6.0.1.1" />
-    <PackageReference Include="Microsoft.WSMan.Management" Version="6.0.1.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Remove="Microsoft.NETCore.App" />
