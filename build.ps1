@@ -16,7 +16,7 @@ Push-Location $PSScriptRoot
 
 ## Clean ##
 if (Test-Path $OutputPath) {
-    Remove-Item $OutputPath -recurse
+    Remove-Item $OutputPath -Recurse -ErrorAction Stop
 }
 $null = New-Item Output/${Configuration} -Force -ItemType Directory
 

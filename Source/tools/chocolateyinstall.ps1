@@ -32,26 +32,26 @@ if ($IsWindows) {
     if (!$KernelFolder) {
         $KernelFolder = Join-Path $Env:AppData "Jupyter\kernels\"
     }
-    $Targets = @("Windows") #, "WindowsPowerShell")
+    $Targets = @("Windows\PowerShell-Kernel.exe") #, "WindowsPowerShell")
 }
 if($IsLinux) {
     if (!$KernelFolder) {
         $KernelFolder = "~/.local/share/jupyter/kernels"
     }
-    $Targets = @("Linux")
+    $Targets = @("Linux/PowerShell-Kernel")
 }
 if($IsOSX) {
     if (!$KernelFolder) {
         $KernelFolder = "~/Library/Jupyter/kernels"
     }
-    $Targets = @("Mac")
+    $Targets = @("Mac/PowerShell-Kernel")
 }
 
 
 foreach($target in $Targets) {
-    $kernelPath = Join-Path $InstallPath "$target\PowerShell-Kernel.dll"
+    $kernelPath = Join-Path $InstallPath $target
 
-    if (!(Test-Path $kernelPath)) {
+    if (!(Test-Path $kernelPath -PathType Leaf)) {
         Write-Warning "
         Can't find the $target PowerShell kernel file in:
         $kernelPath
@@ -68,8 +68,8 @@ foreach($target in $Targets) {
     $kernelPath = Resolve-Path $kernelPath
     $kernelPath = $kernelPath -replace "\\", "\\"
 
-    $targetName = if ($target -eq "WindowsPowerShell") { "WindowsPowerShell"  } else { "PowerShell" }
-    $kernelFile = Join-Path $kernelFolder "$targetName\kernel.json"
+    $targetName = if ($target -match "WindowsPowerShell") { "WindowsPowerShell" } else { "PowerShell" }
+    $kernelFile = Join-Path $kernelFolder "$targetName/kernel.json"
 
     # Make sure the kernel folder exists
     $null = New-Item -Path (Split-Path $kernelFile) -Force -ItemType Directory
