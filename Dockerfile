@@ -73,8 +73,8 @@ COPY --from=builder /root/Output/Release/Linux /usr/src/jupyter-powershell
 COPY --from=builder /root/Output/Release/Linux/kernel.json /usr/local/share/jupyter/kernels/powershell/kernel.json
 
 # Make sure the contents of our repo are in ${HOME}
-COPY *.ipynb ${HOME}/
-COPY *.md ${HOME}/
+COPY . ${HOME}/
+RUN conda install -y -c damianavila82 rise
 RUN chown -R ${NB_UID} ${HOME} \
     && chmod +x /usr/src/jupyter-powershell/PowerShell-Kernel \
     && sed -i -e "s.PowerShell-Kernel./usr/src/jupyter-powershell/PowerShell-Kernel." /usr/local/share/jupyter/kernels/powershell/kernel.json
