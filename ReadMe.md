@@ -26,7 +26,7 @@ Apart from the built-in Jupyter features, I'm going to add some output enhanceme
 
 In order to get cross-platform support, this kernel is based on [PowerShell Core](https://github.com/PowerShell/PowerShell).
 
-To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [dotnet core 2](https://www.microsoft.com/net/core).  You can build it by running `dotnet restore; dotnet build` from the root. If you want to build it in Visual Studio, you need VS 2017 version 15.3 or higher.
+To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [dotnet core 2](https://www.microsoft.com/net/core).  You can build it by running `dotnet restore; dotnet build` from the `Source` folder. If you want to build it in Visual Studio, you need VS 2017 version 15.3 or higher.
 
 ## Examples
 
