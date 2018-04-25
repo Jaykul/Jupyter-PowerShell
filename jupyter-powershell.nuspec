@@ -21,7 +21,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <!-- version should MATCH as closely as possible with the underlying software -->
     <!-- Is the version a prerelease of a version? https://docs.nuget.org/create/versioning#creating-prerelease-packages -->
     <!-- Note that unstable versions like 0.0.1 can be considered a released version, but it's possible that one can release a 0.0.1-beta before you release a 0.0.1 version. If the version number is final, that is considered a released version and not a prerelease. -->
-    <version>1.0.0-beta-8</version>
+    <version>1.0.0</version>
     <packageSourceUrl>https://github.com/Jaykul/Jupyter-PowerShell/releases</packageSourceUrl>
     <!-- owners is a poor name for maintainers of the package. It sticks around by this name for compatibility reasons. It basically means you. -->
     <owners>Joel "Jaykul" Bennett</owners>
@@ -50,9 +50,9 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
   <files>
     <!-- this section controls what actually gets packaged into the Chocolatey package -->
     <file src="output\Release\tools\**" target="tools" />
-    <!-- TODO: I should probably only pack ... one of these at a time, I don't know... -->
+    <!-- TODO: As far as I know, chocolatey doesn't really support the others ...
     <file src="output\Release\Linux\**" target="Linux" />
-    <file src="output\Release\Mac\**" target="Mac" />
+    <file src="output\Release\Mac\**" target="Mac" /> -->
     <file src="output\Release\Windows\**" target="Windows" />
     <!-- <file src="output\Release\WindowsPowerShell\**" target="WindowsPowerShell" /> -->
 

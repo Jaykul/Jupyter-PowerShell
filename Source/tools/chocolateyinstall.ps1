@@ -3,8 +3,8 @@ param(
     # The path to put our kernel.json folders in
     $KernelFolder,
 
-    # The path where the kernel executables are (should contain at least the 'netcoreapp2.0' or 'net461' folder)
-    $InstallPath = $(Split-Path $PSScriptRoot)
+    # The path where the kernel executables are (should contain at least the 'Windows' folder)
+    $InstallPath
 )
 # Use the .NET Core APIs to determine the current platform; if a runtime
 # exception is thrown, we are on FullCLR, not .NET Core.
@@ -27,6 +27,9 @@ try {
     }
 }
 
+if (!$InstallPath) {
+    $InstallPath = Split-Path $PSScriptRoot
+}
 
 if ($IsWindows) {
     if (!$KernelFolder) {
