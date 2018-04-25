@@ -17,7 +17,7 @@ docker run -it --rm -p 8888:8888 jaykul/powershell-notebook-base
 You can also install the kernel locally (assuming you have Jupyter or a clone installed) using [chocolatey](http://chocolatey.org/):
 
 ```posh
-choco install jupyter-powershell --allow-prerelease
+choco install jupyter-powershell
 ```
 
 ## Current Status
