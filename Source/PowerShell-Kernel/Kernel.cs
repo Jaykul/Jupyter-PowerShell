@@ -2,36 +2,62 @@
 using Jupyter.Messages;
 using System;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
+// using Microsoft.Extensions.Configuration;
 using System.IO;
 using Jupyter.Config;
 using System.Reflection;
+//using Autofac;
+using NLog.Extensions.Logging;
+using NLog;
+//using Microsoft.Extensions.Hosting;
+//using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 namespace Jupyter.PowerShell
 {
-    public class Kernel
+    public class Program
     {
-        private static ILogger logger;
-        private static IConfigurationRoot configuration;
-
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var loggerFactory = new LoggerFactory();
+            await CreateHostBuilder(args)
+                .ConfigureLogging(logging => logging.AddNLog())
+                .ConfigureServices(ConfigureServices)
+                .Build()
+                .RunAsync();
+        }
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder().ConfigureAppConfiguration(config =>
+            {
+                // to suppress the default sources
+                // config.Sources.Clear();
 
-            var installPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var baseConfig = Path.Combine(installPath, "PowerShell-Kernel.Config.json");
-            var cwdConfig = Path.Combine(Directory.GetCurrentDirectory(), "PowerShell-Kernel.Config.json");
+                // To support the normal Jupyter use, we absolutely REQUIRE a connection file
+                if (args.Length >= 1 && File.Exists(args[0]))
+                {
+                    config.AddInMemoryCollection(
+                        new Dictionary<string, string>
+                        {
+                            { "Jupyter:ConnectionFile", args[0] }
+                        });
+                    config.AddCommandLine(args.Skip(1).ToArray());
+                }
+                config.AddJsonFile("PowerShell-Kernel.Config.json");
+                config.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "PowerShell-Kernel.Config.json"), optional: true);
+            });
+        }
 
-            var configBuilder = new ConfigurationBuilder()
-                                    .AddJsonFile(baseConfig, true)
-                                    .AddJsonFile(cwdConfig, true);
 
-            configuration = configBuilder.Build();
-
-            var loggerOptions = new LoggerOptions();
-            configuration.GetSection("Logger").Bind(loggerOptions);
-
-            if (configuration.GetSection("Debug").GetValue<bool>("BreakOnStart"))
+        private static void ConfigureServices(HostBuilderContext builder, IServiceCollection services)
+        {
+            // The debugger hack, for now
+            if (builder.Configuration.GetSection("Debug").GetValue<bool>("BreakOnStart"))
             {
                 if (System.Diagnostics.Debugger.IsAttached)
                 {
@@ -42,27 +68,43 @@ namespace Jupyter.PowerShell
                     System.Diagnostics.Debugger.Launch();
                 }
             }
+            services.Configure<PowerShellOptions>("PowerShell", builder.Configuration);
+            services.Configure<LoggerOptions>("Logger", builder.Configuration);
 
-            if (loggerOptions.ConsoleOutput)
-            {
-                loggerFactory.AddConsole();
-            }
 
-            if(loggerOptions.DebuggerOutput)
-            {
-                loggerFactory.AddDebug();
-            }
-            
-            logger = loggerFactory.CreateLogger<PowerShellEngine>();
-
-            PrintAllArgs(args);
-            if (args.Length <= 0)
-            {
-                Console.WriteLine("Requires path to Connection file.");
-                return;
-            }
 
             ConnectionInformation connectionInformation = ConnectionInformation.FromFile(args[0]);
+
+            services.AddHostedService<Kernel>();
+        }
+    }
+
+
+    public class Kernel : IHostedService
+    {
+        private readonly ILogger<Kernel> logger;
+        private readonly IHostApplicationLifetime appLifetime;
+
+        public Kernel(ILogger<Kernel> logger, IConfigureOptions<PowerShellOptions> configuration, IHostApplicationLifetime appLifetime)
+        {
+            this.logger = logger;
+            this.appLifetime = appLifetime;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            appLifetime.ApplicationStarted.Register(OnStarted);
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        private void OnStarted()
+        {
+            logger.LogInformation("OnStarted");
 
             var options = new PowerShellOptions();
             configuration.GetSection("PowerShell").Bind(options);
@@ -75,13 +117,7 @@ namespace Jupyter.PowerShell
             System.Threading.Thread.Sleep(60000);
         }
 
-        private static void PrintAllArgs(string[] args)
-        {            
-            logger.LogDebug("PowerShell Jupyter Kernel Args: ");
-            foreach (string s in args)
-            {
-                logger.LogDebug(s);
-            }
-        }
+
+
     }
 }
