@@ -31,13 +31,13 @@ At this point, I'm only handling two messages:
 
 ### Features
 
-Since Jupyter is all about interaction and documentation, if you want details about the features, you can read the [Features](https://github.com/Jaykul/Jupyter-PowerShell/blob/master/Features.ipynb) notebook here on github, or by running the binder link above.
+Since Jupyter is all about interaction and documentation, if you want details about the features, you can read the [Features](https://github.com/Jaykul/Jupyter-PowerShell/blob/master/Features.ipynb) notebook here on GitHub, or by running the binder link above.
 
 ## PowerShell Core
 
 In order to get cross-platform support, this kernel is based on [PowerShell Core](https://github.com/PowerShell/PowerShell).
 
-To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [dotnet core 2](https://www.microsoft.com/net/core).  You can build it by running `dotnet restore; dotnet build` from the root. If you want to build it in Visual Studio, you need VS 2017 version 15.3 or higher.
+To build it yourself --or to run the "PowerShell (Core)" kernel-- you need [.NET Core 2](https://www.microsoft.com/net/core).  You can build it by running `dotnet restore; dotnet build` from the root. If you want to build it in Visual Studio, you need VS 2017 version 15.3 or higher.
 
 ## A Note on the Jupyter library
 
