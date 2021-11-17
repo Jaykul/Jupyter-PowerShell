@@ -1,3 +1,5 @@
+This project is archived. Try Microsoft's reimplementation in [dotnet/interactive](https://github.com/dotnet/interactive/tree/main/src/Microsoft.DotNet.Interactive.PowerShell).
+
 # A [Jupyter](https://jupyter.org/) Kernel for [PowerShell](https://github.com/PowerShell/PowerShell)
 
 Create PowerShell notebooks in a web browser, with commands and captured output. Add markdown blocks for documentation!
