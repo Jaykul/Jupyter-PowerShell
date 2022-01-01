@@ -129,7 +129,7 @@ For now, let's talk about taking notes<br />
 * Infrastructure
 * Deployments
 
-I'm not writting an essay about my grandiose plans (yet), but I am simply taking notes during my investigation. I need a tool that's good for that.
+I'm not writing an essay about my grandiose plans (yet), but I am simply taking notes during my investigation. I need a tool that's good for that.
 
 * I need a notebook
   * I like markdown
